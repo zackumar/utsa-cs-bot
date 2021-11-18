@@ -1,0 +1,14 @@
+node_modules
+package-lock.json
+package.json
+
+.venv
+.vscode
+
+
+slackbot.log
+courses/CS1083-001.csv
+courses/CS2124-001.csv
+
+__pycache__
+tokens.py
