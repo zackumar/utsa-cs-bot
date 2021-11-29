@@ -9,6 +9,7 @@ package.json
 slackbot.log
 courses/CS1083-001.csv
 courses/CS2124-001.csv
+*.pkl
 
 __pycache__
 tokens.py

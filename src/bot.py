@@ -29,7 +29,8 @@ def main():
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[logging.FileHandler("./slackbot.log"), logging.StreamHandler()],
     )
-    get_students()
+
+    get_students(os.path.exists("./employees.pkl") and os.path.exists("./members.pkl"))
 
     SocketModeHandler(
         app,
@@ -44,9 +45,7 @@ Reads all course list files
 """
 
 
-def get_students():
-    logging.info("Loading students from course lists")
-    file_name_list = os.listdir("./courses")
+def get_students(from_pickle=False):
 
     global member_ids_dataframe
     member_ids_dataframe = pd.DataFrame(
@@ -74,12 +73,23 @@ def get_students():
             "Status",
         ]
     )
-    for file_name in file_name_list:
-        match_info = re.search(r"(CS\d{4})-(\d{3})\.csv", file_name)
-        if match_info != None:
-            createCourse(match_info.group(1))
 
-        read_file("./courses/" + file_name)
+    if from_pickle:
+        logging.info("Loading students from pickle")
+        read_lists()
+    else:
+
+        logging.info("Loading students from course lists")
+        file_name_list = os.listdir("./courses")
+
+        for file_name in file_name_list:
+            match_info = re.search(r"(CS\d{4})-(\d{3})\.csv", file_name)
+            if match_info != None:
+                createCourse(match_info.group(1))
+
+            read_file("./courses/" + file_name)
+
+        save_lists()
 
 
 """
@@ -166,6 +176,9 @@ Command to verify a student and add them to their classes.
 """
 
 
+# FIXME: NEED TO MAKE SURE DIFFERENT USERS CANT VERIFY AS SAME PERSON
+
+
 @app.command("/verifyme")
 def verifyme(ack, respond, command):
     ack()
@@ -196,6 +209,8 @@ def verifyme(ack, respond, command):
                         if row1["Username"] == utsa_id:
                             row1["user_id"] = command["user_id"]
 
+                    row["user_id"] = command["user_id"]
+
                     app.client.conversations_invite(
                         channel=getCoverstationsByName(str(row["Course"]).lower()),
                         users=command["user_id"],
@@ -223,6 +238,9 @@ def verifyme(ack, respond, command):
 
     if in_class:
         respond(f"Welcome {proper_name}! You're good to go, thanks!")
+        save_lists()
+        print(member_ids_dataframe)
+
         return
 
     respond(
@@ -392,7 +410,21 @@ def isTutor(command):
 
 
 def save_lists():
-    pass
+    logging.info("Saving dataframes...")
+    employee_list.to_pickle("./employees.pkl")
+    member_ids_dataframe.to_pickle("./members.pkl")
+    logging.info("Saved.")
+
+
+def read_lists():
+    logging.info("Reading dataframes...")
+
+    global employee_list
+    global member_ids_dataframe
+    employee_list = pd.read_pickle("./employees.pkl")
+    member_ids_dataframe = pd.read_pickle("./members.pkl")
+
+    logging.info("Read.")
 
 
 if __name__ == "__main__":
