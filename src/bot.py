@@ -1,5 +1,6 @@
 from datetime import time
 import os
+import csv
 import re
 import logging
 import pandas as pd
@@ -49,12 +50,21 @@ def get_students():
 
     global member_ids_dataframe
     member_ids_dataframe = pd.DataFrame(
-        columns=["First Name", "Last Name", "Username", "Course", "Section", "Role"]
+        columns=[
+            "user_id",
+            "First Name",
+            "Last Name",
+            "Username",
+            "Course",
+            "Section",
+            "Role",
+        ]
     )
 
     global employee_list
     employee_list = pd.DataFrame(
         columns=[
+            "user_id",
             "First Name",
             "Last Name",
             "Username",
@@ -62,7 +72,6 @@ def get_students():
             "Section",
             "Role",
             "Status",
-            "user_id",
         ]
     )
     for file_name in file_name_list:
@@ -139,10 +148,10 @@ Handle any course messages
 
 @app.event("message")
 def do_nothing(message, say):
-
+    global member_ids_dataframe
     print("HOT MEsSAGE =======")
 
-    print(message)
+    # print(message)
     # print(app.client.conversations_info(channel=message["channel"]))
     # print(app.client.users_info(user=message["user"]))
 
@@ -198,11 +207,18 @@ def verifyme(ack, respond, command):
                     )
 
                 except SlackApiError as e:
-                    logging.error(
-                        "Error adding student to course {0}: {1}".format(
-                            row["Course"], e
+                    if e.response["error"] == "already_in_channel":
+                        logging.info(
+                            "Adding student to course: {0} {1} already in course {2}".format(
+                                row["First Name"], row["Last Name"], row["Course"]
+                            )
                         )
-                    )
+                    else:
+                        logging.error(
+                            "Error adding student to course {0}: {1}".format(
+                                row["Course"], e
+                            )
+                        )
                 in_class = True
 
     if in_class:
@@ -218,6 +234,10 @@ def verifyme(ack, respond, command):
 def tutor(ack, respond, command):
     ack()
 
+    if not isTutor(command):
+        respond("You need to be a tutor to use this command.")
+        return
+
     split = re.search(
         r"(in|out)\s?(?:[\"']([\s\S]+)[\"'])?", command["text"], re.IGNORECASE
     )
@@ -231,7 +251,7 @@ def tutor(ack, respond, command):
 
     if status == "in":
         if message == None:
-            respond("Command requires a message when clocking in.")
+            respond("You are now clocked in.")
             return
 
         employee_list.loc[
@@ -286,6 +306,23 @@ def tutors(ack, respond, command):
         respond("Available tutors for this course:\n" + tutors)
 
 
+@app.command("/updatestudents")
+def updatestudents(ack, respond, command):
+    ack()
+    get_students()
+    respond("Student File Data Update Done")
+
+
+@app.command("/removeroles")
+def remove_roles(ack, respond, command):
+    ack()
+    if not isAdmin(command):
+        respond("You need to be an admin to use this command.")
+        return
+
+    respond("FIXME")
+
+
 @app.command("/updatelist")
 def updatelist(ack, respond, command):
     ack()
@@ -316,10 +353,10 @@ Gets conversations by name
 
 def createCourse(name):
     try:
-        logging.info(f"Creating course {name}")
         app.client.conversations_create(name=str(name).lower(), is_private=True)
     except SlackApiError as e:
-        pass
+        return
+    logging.info(f"Created course {name}")
 
 
 def getCoverstationsByName(name):
@@ -338,7 +375,24 @@ def getCoverstationsByName(name):
 
 def isAdmin(command):
     result = app.client.users_info(user=command["user_id"])
-    return result["user"]["is_admin"]
+    return (result["user"]["is_admin"]) or (
+        employee_list.loc[
+            (employee_list["user_id"] == command["user_id"])
+            & (employee_list["Role"] == Role.ADMIN)
+        ].empty
+    )
+
+
+def isTutor(command):
+    global employee_list
+    return not employee_list.loc[
+        (employee_list["user_id"] == command["user_id"])
+        & (employee_list["Role"] == Role.TUTOR)
+    ].empty
+
+
+def save_lists():
+    pass
 
 
 if __name__ == "__main__":
