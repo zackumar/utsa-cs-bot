@@ -25,10 +25,12 @@ Main
 
 def main():
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.DEBUG,
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[logging.FileHandler("./slackbot.log"), logging.StreamHandler()],
     )
+
+    logging.info("Starting up slack bot...")
 
     get_students(os.path.exists("./employees.pkl") and os.path.exists("./members.pkl"))
 
@@ -158,12 +160,11 @@ Handle any course messages
 
 @app.event("message")
 def do_nothing(message, say):
-    global member_ids_dataframe
     print("HOT MEsSAGE =======")
 
-    # print(message)
-    # print(app.client.conversations_info(channel=message["channel"]))
-    # print(app.client.users_info(user=message["user"]))
+    print(message)
+    print(app.client.conversations_info(channel=message["channel"]))
+    print(app.client.users_info(user=message["user"]))
 
     pass
 
@@ -239,7 +240,6 @@ def verifyme(ack, respond, command):
     if in_class:
         respond(f"Welcome {proper_name}! You're good to go, thanks!")
         save_lists()
-        print(member_ids_dataframe)
 
         return
 
@@ -327,18 +327,54 @@ def tutors(ack, respond, command):
 @app.command("/updatestudents")
 def updatestudents(ack, respond, command):
     ack()
+    if not isAdmin(command):
+        respond("You need to be an admin to use this command.")
+        return
+    respond("Starting data update...")
     get_students()
-    respond("Student File Data Update Done")
+    respond("Update complete.")
 
 
 @app.command("/removeroles")
 def remove_roles(ack, respond, command):
     ack()
+
     if not isAdmin(command):
         respond("You need to be an admin to use this command.")
         return
 
-    respond("FIXME")
+    removal_count = removeRoles()
+    respond(f"Removed {removal_count} roles")
+
+
+def removeRoles():
+    logging.info("Removing roles...")
+
+    global member_ids_dataframe
+    global employee_list
+
+    logging.debug(member_ids_dataframe)
+    logging.debug(employee_list)
+
+    removal_count = 0
+    for index, row in member_ids_dataframe.iterrows():
+        if row["Role"] != Role.ADMIN:
+            row["Role"] = None
+            removal_count += 1
+
+    for index, row in employee_list.iterrows():
+        if row["Role"] != Role.ADMIN:
+            employee_list.drop(index)
+
+            removal_count += 1
+
+    logging.debug(member_ids_dataframe)
+    logging.debug(employee_list)
+
+    logging.info(f"Removed {removal_count} roles")
+    save_lists()
+
+    return removal_count
 
 
 @app.command("/updatelist")
@@ -352,16 +388,39 @@ def updatelist(ack, respond, command):
     get_students()
 
 
-@app.command("/remove")
-def remove(ack, respond, command):
+@app.command("/removecourses")
+def remove_courses(ack, respond, command):
     ack()
+    bot_id = app.client.auth_test()["user_id"]
 
     if not isAdmin(command):
         respond("You need to be an admin to use this command.")
         return
 
-    if command["text"].trim().empty():
-        respond("REMOVE")
+    removeRoles()
+
+    conversation_list = app.client.conversations_list(types="private_channel")
+    for channel in conversation_list["channels"]:
+        if channel["name"].startswith("cs"):
+            call = app.client.conversations_members(channel=channel["id"])
+            members = call["members"]
+
+            while call["response_metadata"]["next_cursor"] != "":
+                call = app.client.conversations_members(
+                    channel=channel["id"],
+                    cursor=call["response_metadata"]["next_cursor"],
+                )
+                members += call["members"]
+
+            logging.debug(channel["name"] + ": " + str(members))
+
+            for user in members:
+                if user == bot_id:
+                    continue
+                app.client.conversations_kick(channel=channel["id"], user=user)
+                logging.debug("Removed {0} from {1}".format(user, channel["name"]))
+
+    respond("Deleted Courses")
 
 
 """
