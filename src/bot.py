@@ -4,6 +4,7 @@ import csv
 import re
 import logging
 import pandas as pd
+import urllib.request
 
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
@@ -160,22 +161,21 @@ Handle any course messages
 
 @app.event("message")
 def new_message(message, say):
-    print("HOT MEsSAGE =======")
 
-    print(message)
-
-    text = message["text"] if ("subtype" not in message) else message["message"]["text"]
+    text = (
+        message["text"]
+        if ("subtype" not in message or message["subtype"] != "message_changed")
+        else message["message"]["text"]
+    )
     channel = message["channel"]
-    user = message["user"] if ("subtype" not in message) else message["message"]["user"]
-    print(text)
-    print(channel)
-    print(user)
+    user = (
+        message["user"]
+        if ("subtype" not in message or message["subtype"] != "message_changed")
+        else message["message"]["user"]
+    )
 
     channel_info = app.client.conversations_info(channel=channel)["channel"]
     user_info = app.client.users_info(user=user)["user"]
-
-    # print(channel_info)
-    # print(user_info)
 
     filename = "./logs/" + channel_info["name"] + ".csv"
 
@@ -193,9 +193,7 @@ def new_message(message, say):
 
         # Write the header if you are creating the file
         if mode == "w":
-            writer.writerow(
-                ["Date", "Time", "Author", "Original Message", "Edited Message"]
-            )
+            writer.writerow(["Date", "Time", "Author", "Message", "Original Message"])
 
         # Build the message info to be written in the log
         message_date = datetime.now().strftime("%x")
@@ -205,30 +203,46 @@ def new_message(message, say):
 
         message_author = user_info["real_name"]
         message_content = text
+        message_original = (
+            message["previous_message"]["text"]
+            if "subtype" in message and message["subtype"] == "message_changed"
+            else ""
+        )
 
-        # if("subtype")
+        message_row = [
+            message_date,
+            message_time,
+            message_author,
+            message_content,
+            message_original,
+        ]
 
-        message_row = [message_date, message_time, message_author, message_content]
-
-        # Write the message to the csv file
         writer.writerow(message_row)
 
-    #     for attachment in message.attachments:
-    #         # Save the files into a folder in logs
-    #         await attachment.save(
-    #             'logs/files/' + datetime.now().strftime('%Y-%m-%d%H-%M-%S') + attachment.filename)
+        if "subtype" in message and message["subtype"] == "file_share":
+            if not os.path.exists("./logs/files"):
+                os.makedirs("./logs/files")
 
-    #         # Log the upload in the csv
-    #         message_content = 'Uploaded' + attachment.filename
-    #         message_row = [message_date, message_time, message_author, message_content]
+            for f in message["files"]:
+                print(f["name"])
+                message_content = "Uploaded " + f["name"]
+                urllib.request.urlretrieve(
+                    f["url_private"],
+                    "./logs/files/"
+                    + datetime.now().strftime("%Y-%m-%d%H-%M-%S")
+                    + "-"
+                    + f["name"],
+                )
 
-    #         # Write the upload to the csv file
-    #         writer.writerow(message_row)
+                message_row = [
+                    message_date,
+                    message_time,
+                    message_author,
+                    message_content,
+                    message_original,
+                ]
 
-    # print(app.client.conversations_info(channel=message["channel"]))
-    # print(app.client.users_info(user=message["user"]))
-
-    pass
+                writer.writerow(message_row)
 
 
 # Commands
