@@ -33,7 +33,10 @@ def main():
 
     logging.info("Starting up slack bot...")
 
-    get_students(os.path.exists("./employees.pkl") and os.path.exists("./members.pkl"))
+    get_students(
+        os.path.exists("./dataframes/employees.pkl")
+        and os.path.exists("./dataframes/members.pkl")
+    )
 
     SocketModeHandler(
         app,
@@ -251,6 +254,13 @@ def new_message(message, say):
 Command to verify a student and add them to their classes.
 /verifyme [abc123],[firstname],[lastname]
 """
+
+# FIXME: NEED SOMEONE TO TEST WITH
+
+
+@app.event("member_joined_channel")
+def member_joined(message):
+    print(message)
 
 
 # FIXME: NEED TO MAKE SURE DIFFERENT USERS CANT VERIFY AS SAME PERSON
@@ -620,8 +630,10 @@ def isTutor(command):
 
 def save_lists():
     logging.info("Saving dataframes...")
-    employee_list.to_pickle("./employees.pkl")
-    member_ids_dataframe.to_pickle("./members.pkl")
+    if not os.path.exists("./dataframes"):
+        os.makedirs("./dataframes")
+    employee_list.to_pickle("./dataframes/employees.pkl")
+    member_ids_dataframe.to_pickle("./dataframes/members.pkl")
     logging.info("Saved.")
 
 
@@ -630,8 +642,8 @@ def read_lists():
 
     global employee_list
     global member_ids_dataframe
-    employee_list = pd.read_pickle("./employees.pkl")
-    member_ids_dataframe = pd.read_pickle("./members.pkl")
+    employee_list = pd.read_pickle("./dataframes/employees.pkl")
+    member_ids_dataframe = pd.read_pickle("./dataframes/members.pkl")
 
     logging.info("Read.")
 
