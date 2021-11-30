@@ -5,6 +5,7 @@ package.json
 .venv
 .vscode
 
+/logs/
 
 slackbot.log
 courses/CS1083-001.csv

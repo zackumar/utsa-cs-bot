@@ -1,4 +1,4 @@
-from datetime import time
+from datetime import datetime, timezone
 import os
 import csv
 import re
@@ -25,7 +25,7 @@ Main
 
 def main():
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[logging.FileHandler("./slackbot.log"), logging.StreamHandler()],
     )
@@ -159,12 +159,74 @@ Handle any course messages
 
 
 @app.event("message")
-def do_nothing(message, say):
+def new_message(message, say):
     print("HOT MEsSAGE =======")
 
     print(message)
-    print(app.client.conversations_info(channel=message["channel"]))
-    print(app.client.users_info(user=message["user"]))
+
+    text = message["text"] if ("subtype" not in message) else message["message"]["text"]
+    channel = message["channel"]
+    user = message["user"] if ("subtype" not in message) else message["message"]["user"]
+    print(text)
+    print(channel)
+    print(user)
+
+    channel_info = app.client.conversations_info(channel=channel)["channel"]
+    user_info = app.client.users_info(user=user)["user"]
+
+    # print(channel_info)
+    # print(user_info)
+
+    filename = "./logs/" + channel_info["name"] + ".csv"
+
+    if os.path.exists(filename):
+        mode = "a"
+    else:
+        mode = "w"
+        if not os.path.exists("./logs/"):
+            os.makedirs("./logs/")
+
+    with open(filename, mode=mode, encoding="utf-8", newline="") as csv_file:
+
+        # Create the writer and header for the CSV
+        writer = csv.writer(csv_file)
+
+        # Write the header if you are creating the file
+        if mode == "w":
+            writer.writerow(
+                ["Date", "Time", "Author", "Original Message", "Edited Message"]
+            )
+
+        # Build the message info to be written in the log
+        message_date = datetime.now().strftime("%x")
+        message_time = datetime.now().strftime("%X")
+
+        print(message_date)
+
+        message_author = user_info["real_name"]
+        message_content = text
+
+        # if("subtype")
+
+        message_row = [message_date, message_time, message_author, message_content]
+
+        # Write the message to the csv file
+        writer.writerow(message_row)
+
+    #     for attachment in message.attachments:
+    #         # Save the files into a folder in logs
+    #         await attachment.save(
+    #             'logs/files/' + datetime.now().strftime('%Y-%m-%d%H-%M-%S') + attachment.filename)
+
+    #         # Log the upload in the csv
+    #         message_content = 'Uploaded' + attachment.filename
+    #         message_row = [message_date, message_time, message_author, message_content]
+
+    #         # Write the upload to the csv file
+    #         writer.writerow(message_row)
+
+    # print(app.client.conversations_info(channel=message["channel"]))
+    # print(app.client.users_info(user=message["user"]))
 
     pass
 
@@ -334,7 +396,9 @@ def updatestudents(ack, respond, command):
     get_students()
     respond("Update complete.")
 
+
 # FIXME: GET STUDENTS ERASES USER_ID, BUT I NEED THAT. WILL COME BACK
+
 
 @app.command("/updatecourse")
 def updatecourse(ack, respond, command):
