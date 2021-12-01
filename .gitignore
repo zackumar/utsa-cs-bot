@@ -6,6 +6,7 @@ package.json
 .vscode
 
 /logs/
+/courses/*.csv
 
 slackbot.log
 courses/CS1083-001.csv
