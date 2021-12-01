@@ -109,6 +109,7 @@ Reads a course list file and adds students to main dataframe
 
 
 def update_students():
+    logging.info("Updating students from list...")
     original_member_df = member_ids_dataframe.copy()
     original_employee_df = employee_list.copy()
 
@@ -136,6 +137,7 @@ def update_students():
         if not df.empty:
             row["user_id"] = df.iloc[0]["user_id"]
 
+    logging.info("Update finished...")
     logging.debug(member_ids_dataframe)
     logging.debug(employee_list)
 
@@ -365,8 +367,8 @@ def verifyme(ack, respond, command):
     if in_class:
         respond(f"Welcome {proper_name}! You're good to go, thanks!")
         save_lists()
-        # print(member_ids_dataframe)
-        print(employee_list)
+        logging.debug(member_ids_dataframe)
+        logging.debug(employee_list)
         return
 
     respond(
@@ -461,9 +463,6 @@ def updatestudents(ack, respond, command):
     respond("Update complete.")
 
 
-# FIXME: GET STUDENTS ERASES USER_ID, BUT I NEED THAT. WILL COME BACK
-
-
 @app.command("/updatecourse")
 def updatecourse(ack, respond, command):
     ack()
@@ -474,76 +473,116 @@ def updatecourse(ack, respond, command):
         respond("You need to be an admin to use this command.")
         return
 
+    respond("Starting course update. This may take awhile.")
+
+    respond("Updaing student list.")
     update_students()
+    respond("Updated.")
 
-    # bot_id = app.client.auth_test()["user_id"]
+    bot_id = app.client.auth_test()["user_id"]
 
-    # if command["text"].lower().strip() == "all":
-    #     logging.info("Starting course channel update on all channels...")
-    #     respond("Starting course channel update on all channels...")
-    #     conversation_list = app.client.conversations_list(types="private_channel")
-    #     for channel in conversation_list["channels"]:
-    #         if channel["name"].startswith("cs"):
-    #             call = app.client.conversations_members(channel=channel["id"])
-    #             members = call["members"]
+    if command["text"].lower().strip() == "all":
+        logging.info("Starting course channel update on all channels...")
+        respond("Starting course channel update on all channels...")
+        conversation_list = app.client.conversations_list(types="private_channel")
+        for channel in conversation_list["channels"]:
+            if channel["name"].startswith("cs"):
+                call = app.client.conversations_members(channel=channel["id"])
+                members = call["members"]
 
-    #             while call["response_metadata"]["next_cursor"] != "":
-    #                 call = app.client.conversations_members(
-    #                     channel=channel["id"],
-    #                     cursor=call["response_metadata"]["next_cursor"],
-    #                 )
-    #                 members += call["members"]
+                while call["response_metadata"]["next_cursor"] != "":
+                    call = app.client.conversations_members(
+                        channel=channel["id"],
+                        cursor=call["response_metadata"]["next_cursor"],
+                    )
+                    members += call["members"]
 
-    #             logging.debug(channel["name"] + ": " + str(members))
+                logging.debug(channel["name"] + ": " + str(members))
 
-    #             for user in members:
-    #                 if user == bot_id:
-    #                     continue
+                for user in members:
+                    if user == bot_id:
+                        continue
 
-    #                 person = member_ids_dataframe.loc[
-    #                     (member_ids_dataframe["user_id"] == user)
-    #                     & (
-    #                         str(member_ids_dataframe["Course"]).lower()
-    #                         == channel["name"]
-    #                     )
-    #                 ]
-    #                 print(person)
+                    print(user)
 
-    #                 # app.client.conversations_kick(channel=channel["id"], user=user)
-    #                 # logging.debug("Removed {0} from {1}".format(user, channel["name"]))
-    # else:
-    #     logging.info(
-    #         "Starting course channel update for {0}...".format(command["channel_name"])
-    #     )
-    #     respond(
-    #         "Starting course channel update for {0}...".format(command["channel_name"])
-    #     )
-    #     call = app.client.conversations_members(channel=command["channel_id"])
-    #     members = call["members"]
+                    person = member_ids_dataframe.loc[
+                        (member_ids_dataframe["user_id"] == user)
+                        & (member_ids_dataframe["Course"] == channel["name"].upper())
+                    ]
 
-    #     while call["response_metadata"]["next_cursor"] != "":
-    #         call = app.client.conversations_members(
-    #             channel=command["channel_id"],
-    #             cursor=call["response_metadata"]["next_cursor"],
-    #         )
-    #         members += call["members"]
+                    if person.empty:
+                        app.client.conversations_kick(channel=channel["id"], user=user)
+                        logging.info(
+                            "Removed {0} from {1}".format(user, channel["name"])
+                        )
 
-    #     logging.debug(command["channel_name"] + ": " + str(members))
+                class_members = member_ids_dataframe.loc[
+                    (member_ids_dataframe["Course"] == channel["name"].upper())
+                    & (pd.isnull(member_ids_dataframe["user_id"]) == False)
+                    # Wanted to use this but could not figure out how
+                    # & (member_ids_dataframe["user_id"] in members)
+                ]
 
-    #     for user in members:
-    #         if user == bot_id:
-    #             continue
+                for index, row in class_members.iterrows():
+                    if row["user_id"] not in user:
+                        app.client.conversations_invite(
+                            channel=channel["id"], users=row["user_id"]
+                        )
+                        logging.info("Added {0} to {1}".format(user, channel["name"]))
 
-    #         print(user)
+    else:
 
-    #         person = member_ids_dataframe.loc[
-    #             (member_ids_dataframe["user_id"] == user)
-    #             # & (
-    #             #     str(member_ids_dataframe["Course"]).lower()
-    #             #     == command["channel_name"]
-    #             # )
-    #         ]
-    #         print(person)
+        logging.info(
+            "Starting course channel update for {0}...".format(command["channel_name"])
+        )
+        respond(
+            "Starting course channel update for {0}...".format(command["channel_name"])
+        )
+        call = app.client.conversations_members(channel=command["channel_id"])
+        members = call["members"]
+
+        while call["response_metadata"]["next_cursor"] != "":
+            call = app.client.conversations_members(
+                channel=command["channel_id"],
+                cursor=call["response_metadata"]["next_cursor"],
+            )
+            members += call["members"]
+
+        logging.debug(command["channel_name"] + ": " + str(members))
+
+        for user in members:
+            if user == bot_id:
+                continue
+
+            print(user)
+
+            person = member_ids_dataframe.loc[
+                (member_ids_dataframe["user_id"] == user)
+                & (member_ids_dataframe["Course"] == command["channel_name"].upper())
+            ]
+
+            if person.empty:
+                app.client.conversations_kick(channel=command["channel_id"], user=user)
+                logging.info(
+                    "Removed {0} from {1}".format(user, command["channel_name"])
+                )
+
+        class_members = member_ids_dataframe.loc[
+            (member_ids_dataframe["Course"] == command["channel_name"].upper())
+            & (pd.isnull(member_ids_dataframe["user_id"]) == False)
+            # Wanted to use this but could not figure out how
+            # & (member_ids_dataframe["user_id"] in members)
+        ]
+
+        for index, row in class_members.iterrows():
+            if row["user_id"] not in user:
+                app.client.conversations_invite(
+                    channel=command["channel_id"], user=row["user_id"]
+                )
+                logging.info("Added {0} to {1}".format(user, command["channel_name"]))
+
+    logging.info("Finished update.")
+    respond("Finished update.")
 
 
 @app.command("/removeroles")
