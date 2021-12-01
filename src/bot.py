@@ -3,8 +3,10 @@ import os
 import csv
 import re
 import logging
+import numpy as np
 import pandas as pd
 import urllib.request
+from pandas.core.frame import DataFrame
 
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
@@ -95,6 +97,9 @@ def get_students(from_pickle=False):
 
             read_file("./courses/" + file_name)
 
+        member_ids_dataframe.reset_index(drop=True, inplace=True)
+        employee_list.reset_index(drop=True, inplace=True)
+
         save_lists()
 
 
@@ -112,8 +117,9 @@ def update_students():
     for index, row in member_ids_dataframe.iterrows():
         df = original_member_df.loc[
             (original_member_df["Username"] == row["Username"])
-            & (original_member_df["Course"] == row["Course"])
-            & (original_member_df["Section"] == row["Section"])
+            & (original_member_df["First Name"] == row["First Name"])
+            & (original_member_df["Last Name"] == row["Last Name"])
+            & (pd.isnull(original_member_df["user_id"]) == False)
         ]
 
         if not df.empty:
@@ -122,12 +128,18 @@ def update_students():
     for index, row in employee_list.iterrows():
         df = original_employee_df.loc[
             (original_employee_df["Username"] == row["Username"])
-            & (original_employee_df["Course"] == row["Course"])
-            & (original_employee_df["Section"] == row["Section"])
+            & (original_employee_df["First Name"] == row["First Name"])
+            & (original_employee_df["Last Name"] == row["Last Name"])
+            & (pd.isnull(original_employee_df["user_id"]) == False)
         ]
 
         if not df.empty:
             row["user_id"] = df.iloc[0]["user_id"]
+
+    logging.debug(member_ids_dataframe)
+    logging.debug(employee_list)
+
+    save_lists()
 
 
 def read_file(file_name):
@@ -353,7 +365,8 @@ def verifyme(ack, respond, command):
     if in_class:
         respond(f"Welcome {proper_name}! You're good to go, thanks!")
         save_lists()
-        print(member_ids_dataframe)
+        # print(member_ids_dataframe)
+        print(employee_list)
         return
 
     respond(
