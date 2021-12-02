@@ -15,16 +15,14 @@ from status import Status
 
 import tokens
 
-app = App(
-    token=tokens.SLACK_BOT_TOKEN
-)  # Tokens will be moved to env vars when deployed
-
-"""
-Main
-"""
+app = App(token=tokens.SLACK_BOT_TOKEN)
 
 
 def main():
+    """
+    Main
+    """
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
@@ -46,12 +44,11 @@ def main():
 
 # Course Lists
 
-"""
-Reads all course list files
-"""
-
 
 def get_students(from_pickle=False):
+    """
+    Reads all course list files
+    """
 
     global member_ids_dataframe
     member_ids_dataframe = pd.DataFrame(
@@ -101,12 +98,11 @@ def get_students(from_pickle=False):
         save_lists()
 
 
-"""
-Reads a course list file and adds students to main dataframe
-"""
-
-
 def update_students():
+    """
+    Reads a course list file and adds students to main dataframe
+    """
+
     logging.info("Updating students from list...")
     original_member_df = member_ids_dataframe.copy()
     original_employee_df = employee_list.copy()
@@ -142,12 +138,11 @@ def update_students():
     save_lists()
 
 
-"""
-Read Course File and parse students
-"""
-
-
 def read_file(file_name):
+    """
+    Read course file and parse students
+    """
+
     # open the file as dataframe
     course_dataframe = pd.read_csv(file_name)
     # parse filename using regex
@@ -198,13 +193,11 @@ def read_file(file_name):
         logging.info(f"Loaded file: {file_name}")
 
 
-"""
-Handle any course messages
-"""
-
-
 @app.event("message")
 def new_message(message, say):
+    """
+    Handle any course messages
+    """
 
     text = (
         message["text"]
@@ -286,8 +279,6 @@ def new_message(message, say):
                 writer.writerow(message_row)
 
 
-# Commands
-
 # FIXME: NEED SOMEONE TO TEST WITH
 
 
@@ -296,15 +287,12 @@ def member_joined(message):
     print(message)
 
 
-"""
-Command to verify a student and add them to their classes.
-/verifyme [abc123],[firstname],[lastname]
-"""
-
-
 @app.command("/verifyme")
 def verifyme(ack, respond, command):
-    # FIXME: NEED TO MAKE SURE DIFFERENT USERS CANT VERIFY AS SAME PERSON
+    """
+    Command to verify a student and add them to their classes.
+    /verifyme [abc123],[firstname],[lastname]
+    """
 
     ack()
 
@@ -405,13 +393,12 @@ def verifyme(ack, respond, command):
         return
 
 
-"""
-Tutor clock in/out command
-"""
-
-
 @app.command("/tutor")
 def tutor(ack, respond, command):
+    """
+    Tutor clock in/out command
+    """
+
     ack()
 
     if not isTutor(command):
@@ -485,13 +472,12 @@ def tutor(ack, respond, command):
         respond("Please use this format: /tutor [in|out]")
 
 
-"""
-List available tutors for the course the command is ran in
-"""
-
-
 @app.command("/tutors")
 def tutors(ack, respond, command):
+    """
+    List available tutors for the course the command is ran in
+    """
+
     ack()
 
     tutor_list = employee_list.loc[
@@ -510,14 +496,14 @@ def tutors(ack, respond, command):
         respond("Available tutors for this course:\n" + tutors)
 
 
-"""
-Load in new course lists and resets Slack User IDs if reset is a parameter  
-"""
-
-
 @app.command("/updatelist")
 def updatelist(ack, respond, command):
+    """
+    Load in new course lists and resets Slack User IDs if reset is a parameter
+    """
+
     ack()
+
     if not isAdmin(command):
         respond("You need to be an admin to use this command.")
         return
@@ -534,13 +520,12 @@ def updatelist(ack, respond, command):
     print(member_ids_dataframe)
 
 
-"""
-Update course list and remove/add students to channels
-"""
-
-
 @app.command("/updatecourse")
 def updatecourse(ack, respond, command):
+    """
+    Update course list and remove/add students to channels
+    """
+
     ack()
     global member_ids_dataframe
 
@@ -550,9 +535,7 @@ def updatecourse(ack, respond, command):
 
     respond("Starting course update. This may take awhile.")
 
-    respond("Updaing student list.")
     update_students()
-    respond("Updated.")
 
     bot_id = app.client.auth_test()["user_id"]
 
@@ -598,11 +581,28 @@ def updatecourse(ack, respond, command):
 
                 for index, row in class_members.iterrows():
                     if row["user_id"] not in user:
-                        app.client.conversations_invite(
-                            channel=channel["id"], users=row["user_id"]
-                        )
-                        logging.info("Added {0} to {1}".format(user, channel["name"]))
-
+                        try:
+                            app.client.conversations_invite(
+                                channel=channel["id"], users=row["user_id"]
+                            )
+                            logging.info(
+                                "Added {0} to {1}".format(user, channel["name"])
+                            )
+                        except SlackApiError as e:
+                            if e.response["error"] == "already_in_channel":
+                                logging.info(
+                                    "Adding student to course: {0} {1} already in course {2}".format(
+                                        row["First Name"],
+                                        row["Last Name"],
+                                        row["Course"],
+                                    )
+                                )
+                            else:
+                                logging.error(
+                                    "Error adding student to course {0}: {1}".format(
+                                        row["Course"], e
+                                    )
+                                )
     else:
 
         logging.info(
@@ -656,13 +656,12 @@ def updatecourse(ack, respond, command):
     respond("Finished update.")
 
 
-"""
-Remove all roles other than admins
-"""
-
-
 @app.command("/removeroles")
 def remove_roles(ack, respond, command):
+    """
+    Remove all roles other than admins
+    """
+
     ack()
 
     if not isAdmin(command):
@@ -704,13 +703,12 @@ def removeRoles():
     return removal_count
 
 
-"""
-Removes all students from courses. You cannot delete channels with the api, so it archives them instead.
-"""
-
-
 @app.command("/removecourses")
 def remove_courses(ack, respond, command):
+    """
+    Removes all students from courses. You cannot delete channels with the api, so it archives them instead.
+    """
+
     ack()
     bot_id = app.client.auth_test()["user_id"]
 
@@ -746,9 +744,24 @@ def remove_courses(ack, respond, command):
     respond("Deleted Courses")
 
 
-"""
-Gets conversations by name
-"""
+@app.command("/resetuser")
+def resetuser(ack, respond, command):
+    """
+    Reset user's slack id
+    """
+
+    ack()
+    if not isAdmin(command):
+        respond("You need to be an admin to use this command.")
+        return
+
+    utsa_id = command["text"].lower().strip()
+
+    member_ids_dataframe.loc[
+        member_ids_dataframe["Username"] == utsa_id, "user_id"
+    ] = None
+
+    respond(f"Removed User Id from {utsa_id}")
 
 
 def createCourse(name):
