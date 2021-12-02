@@ -1,1 +1,1 @@
-# utsa-cs-bot
+# UTSA CS Main Lab Slack Bot
