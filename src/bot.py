@@ -144,6 +144,11 @@ def update_students():
     save_lists()
 
 
+"""
+Read Course File and parse students
+"""
+
+
 def read_file(file_name):
     # open the file as dataframe
     course_dataframe = pd.read_csv(file_name)
@@ -195,11 +200,8 @@ def read_file(file_name):
         logging.info(f"Loaded file: {file_name}")
 
 
-# Messages
-
 """
 Handle any course messages
-(Does nothing at the moment. The Slack API yells at you if you don't handle them somehow)
 """
 
 
@@ -243,8 +245,6 @@ def new_message(message, say):
         message_date = datetime.now().strftime("%x")
         message_time = datetime.now().strftime("%X")
 
-        print(message_date)
-
         message_author = user_info["real_name"]
         message_content = text
         message_original = (
@@ -268,7 +268,6 @@ def new_message(message, say):
                 os.makedirs("./logs/files")
 
             for f in message["files"]:
-                print(f["name"])
                 message_content = "Uploaded " + f["name"]
                 urllib.request.urlretrieve(
                     f["url_private"],
@@ -291,11 +290,6 @@ def new_message(message, say):
 
 # Commands
 
-"""
-Command to verify a student and add them to their classes.
-/verifyme [abc123],[firstname],[lastname]
-"""
-
 # FIXME: NEED SOMEONE TO TEST WITH
 
 
@@ -304,11 +298,16 @@ def member_joined(message):
     print(message)
 
 
-# FIXME: NEED TO MAKE SURE DIFFERENT USERS CANT VERIFY AS SAME PERSON
+"""
+Command to verify a student and add them to their classes.
+/verifyme [abc123],[firstname],[lastname]
+"""
 
 
 @app.command("/verifyme")
 def verifyme(ack, respond, command):
+    # FIXME: NEED TO MAKE SURE DIFFERENT USERS CANT VERIFY AS SAME PERSON
+
     ack()
 
     split = command["text"].lower().split(",")
@@ -376,6 +375,11 @@ def verifyme(ack, respond, command):
     )
 
 
+"""
+Tutor clock in/out command
+"""
+
+
 @app.command("/tutor")
 def tutor(ack, respond, command):
     ack()
@@ -396,13 +400,23 @@ def tutor(ack, respond, command):
     message = split.group(2)
 
     if status == "in":
-        if message == None:
-            respond("You are now clocked in.")
+
+        if (
+            employee_list.loc[employee_list["user_id"] == command["user_id"]].iloc[0][
+                "Status"
+            ]
+            == Status.IN
+        ):
+            respond("You are already clocked in.")
             return
 
         employee_list.loc[
             employee_list["user_id"] == command["user_id"], "Status"
         ] = Status.IN
+
+        if message == None:
+            respond("You are now clocked in.")
+            return
 
         tutor = employee_list.loc[employee_list["user_id"] == command["user_id"]]
 
@@ -422,6 +436,15 @@ def tutor(ack, respond, command):
         )
 
     elif status == "out":
+        if (
+            employee_list.loc[employee_list["user_id"] == command["user_id"]].iloc[0][
+                "Status"
+            ]
+            == Status.OUT
+        ):
+            respond("You are already clocked out.")
+            return
+
         employee_list.loc[
             employee_list["user_id"] == command["user_id"], "Status"
         ] = Status.OUT
@@ -430,6 +453,11 @@ def tutor(ack, respond, command):
 
     else:
         respond("Please use this format: /tutor [in|out]")
+
+
+"""
+List available tutors for the course the command is ran in
+"""
 
 
 @app.command("/tutors")
@@ -452,22 +480,39 @@ def tutors(ack, respond, command):
         respond("Available tutors for this course:\n" + tutors)
 
 
-@app.command("/updatestudents")
-def updatestudents(ack, respond, command):
+"""
+Load in new course lists and resets Slack User IDs if reset is a parameter  
+"""
+
+
+@app.command("/updatelist")
+def updatelist(ack, respond, command):
     ack()
     if not isAdmin(command):
         respond("You need to be an admin to use this command.")
         return
-    respond("Starting data update...")
-    get_students()
-    respond("Update complete.")
+
+    if command["text"].lower().strip() == "reset":
+        respond("Starting data update and removing Slack User IDs...")
+        get_students()
+        respond("Update complete.")
+    else:
+        respond("Starting data update")
+        update_students()
+        respond("Update complete.")
+
+    print(member_ids_dataframe)
+
+
+"""
+Update course list and remove/add students to channels
+"""
 
 
 @app.command("/updatecourse")
 def updatecourse(ack, respond, command):
     ack()
     global member_ids_dataframe
-    print(member_ids_dataframe)
 
     if not isAdmin(command):
         respond("You need to be an admin to use this command.")
@@ -502,8 +547,6 @@ def updatecourse(ack, respond, command):
                 for user in members:
                     if user == bot_id:
                         continue
-
-                    print(user)
 
                     person = member_ids_dataframe.loc[
                         (member_ids_dataframe["user_id"] == user)
@@ -554,8 +597,6 @@ def updatecourse(ack, respond, command):
             if user == bot_id:
                 continue
 
-            print(user)
-
             person = member_ids_dataframe.loc[
                 (member_ids_dataframe["user_id"] == user)
                 & (member_ids_dataframe["Course"] == command["channel_name"].upper())
@@ -583,6 +624,11 @@ def updatecourse(ack, respond, command):
 
     logging.info("Finished update.")
     respond("Finished update.")
+
+
+"""
+Remove all roles other than admins
+"""
 
 
 @app.command("/removeroles")
@@ -625,6 +671,11 @@ def removeRoles():
     save_lists()
 
     return removal_count
+
+
+"""
+Removes all students from courses. You cannot delete channels with the api, so it archives them instead.
+"""
 
 
 @app.command("/removecourses")
