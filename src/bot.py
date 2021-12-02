@@ -3,8 +3,10 @@ import os
 import csv
 import re
 import logging
+import sys
 import pandas as pd
 import urllib.request
+import git
 
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
@@ -13,9 +15,12 @@ from slack_sdk.errors import SlackApiError
 from role import Role
 from status import Status
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import tokens
 
 app = App(token=tokens.SLACK_BOT_TOKEN)
+
+repo_url = "https://github.com/zackumar/utsa-cs-bot"
 
 
 def main():
@@ -38,7 +43,7 @@ def main():
 
     SocketModeHandler(
         app,
-        tokens.SLACK_APP_TOKEN,  # Tokens will be moved to env vars when deployed
+        tokens.SLACK_APP_TOKEN,
     ).start()
 
 
@@ -762,6 +767,48 @@ def resetuser(ack, respond, command):
     ] = None
 
     respond(f"Removed User Id from {utsa_id}")
+
+
+@app.command("/update")
+def update(ack, respond, command):
+    """
+    Get newest bot update from origin/main. Use the install paramenter to install them.
+    """
+
+    ack()
+    if not isAdmin(command):
+        respond("You need to be an admin to use this command.")
+        return
+
+    repo = git.Repo("./.git")
+    commits_behind = len(list(repo.iter_commits("main..origin/main")))
+
+    if command["text"].lower().strip() == "install":
+        logging.info("Starting install...")
+        respond("Starting install...")
+
+        logging.info(f"Current commit hash: {repo.head.object.hexsha[0:7]}")
+        respond(f"Current commit hash: {repo.head.object.hexsha[0:7]}")
+
+        logging.info(f"Commit hash is now: {repo.head.object.hexsha[0:7]}")
+        repo.remote("origin").pull()
+
+        logging.info("Pulling origin/main...")
+        respond(f"Commit hash is now: {repo.head.object.hexsha[0:7]}")
+
+        logging.info("Restarting...")
+        respond("The bot will restart silently.")
+
+        os.execv(sys.executable, ["python"] + [sys.argv[0]])
+
+    if commits_behind > 0:
+        respond(
+            'You have {0} pending updates. Use "/update install" to install it. Go to {1} for changelog.'.format(
+                commits_behind, repo_url + "/blob/main/CHANGELOG.md"
+            )
+        )
+    else:
+        respond("You have 0 pending updates.")
 
 
 def createCourse(name):

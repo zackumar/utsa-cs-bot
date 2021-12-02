@@ -2,6 +2,8 @@ black==21.9b0
 certifi==2021.5.30
 charset-normalizer==2.0.5
 click==8.0.1
+gitdb==4.0.9
+GitPython==3.1.24
 idna==3.2
 mypy-extensions==0.4.3
 numpy==1.21.2
@@ -16,6 +18,7 @@ requests==2.26.0
 six==1.16.0
 slack-bolt==1.9.1
 slack-sdk==3.11.0
+smmap==5.0.0
 tomli==1.2.1
 typing-extensions==3.10.0.2
 urllib3==1.26.6
