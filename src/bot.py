@@ -1,12 +1,10 @@
-from datetime import datetime, timezone
+from datetime import datetime
 import os
 import csv
 import re
 import logging
-import numpy as np
 import pandas as pd
 import urllib.request
-from pandas.core.frame import DataFrame
 
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
@@ -324,6 +322,42 @@ def verifyme(ack, respond, command):
     proper_name = None
 
     global member_ids_dataframe
+
+    matching_rows = member_ids_dataframe.loc[
+        (member_ids_dataframe["First Name"].str.lower() == first_name)
+        & (member_ids_dataframe["Last Name"].str.lower() == last_name)
+        & (member_ids_dataframe["Username"] == utsa_id)
+    ]
+
+    if matching_rows.empty:
+        respond(
+            'Please be sure that the format is "/verifyme abc123,first_name,last_name" and that you have entered what is present in Blackboard. If you believe you are correct, please contact your instructor.'
+        )
+        return
+
+    is_found_id = not member_ids_dataframe.loc[
+        member_ids_dataframe["user_id"] == command["user_id"]
+    ].empty
+
+    verifying_has_id = member_ids_dataframe.loc[
+        (member_ids_dataframe["Username"] == utsa_id)
+        & (pd.isnull(member_ids_dataframe["user_id"]))
+    ].empty
+
+    user_matches_existing = member_ids_dataframe.loc[
+        (member_ids_dataframe["user_id"] == command["user_id"])
+        & (member_ids_dataframe["First Name"].str.lower() == first_name)
+        & (member_ids_dataframe["Last Name"].str.lower() == last_name)
+        & (member_ids_dataframe["Username"] == utsa_id)
+    ]
+
+    if is_found_id or verifying_has_id:
+        if user_matches_existing.empty:
+            respond(
+                "Either you or the person you are trying to verify as is already verified. If you believe this is a mistake, please contact your instructor."
+            )
+            return
+
     for index, row in member_ids_dataframe.iterrows():
         if str(row["Username"]).lower() == utsa_id:
             proper_name = row["First Name"]
@@ -369,10 +403,6 @@ def verifyme(ack, respond, command):
         logging.debug(member_ids_dataframe)
         logging.debug(employee_list)
         return
-
-    respond(
-        'Please be sure that the format is "/verifyme abc123,first_name,last_name" and that you have entered what is present in Blackboard. If you believe you are correct, please contact your instructor.'
-    )
 
 
 """
@@ -639,6 +669,7 @@ def remove_roles(ack, respond, command):
         respond("You need to be an admin to use this command.")
         return
 
+    respond("Removing roles. This may take awhile.")
     removal_count = removeRoles()
     respond(f"Removed {removal_count} roles")
 
@@ -686,6 +717,8 @@ def remove_courses(ack, respond, command):
     if not isAdmin(command):
         respond("You need to be an admin to use this command.")
         return
+
+    respond("Removing courses. This may take awhile.")
 
     removeRoles()
 
