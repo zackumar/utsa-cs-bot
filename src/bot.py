@@ -485,6 +485,8 @@ def tutors(ack, respond, command):
 
     ack()
 
+    # if command["text"].lower().strip() == "schedule":
+
     tutor_list = employee_list.loc[
         (employee_list["Course"] == command["channel_name"].upper())
     ]
