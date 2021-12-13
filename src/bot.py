@@ -4,9 +4,11 @@ import csv
 import re
 import logging
 import sys
+from typing import ChainMap
 import pandas as pd
 import urllib.request
 import git
+import requests
 
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
@@ -21,6 +23,7 @@ import tokens
 app = App(token=tokens.SLACK_BOT_TOKEN)
 
 repo_url = "https://github.com/zackumar/utsa-cs-bot"
+link_prefix = "https://raw.githubusercontent.com/zackumar/utsa-cs-bot/main/schedules/"
 
 
 def main():
@@ -485,7 +488,37 @@ def tutors(ack, respond, command):
 
     ack()
 
-    # if command["text"].lower().strip() == "schedule":
+    if command["text"].lower().strip() == "schedule":
+
+        link_exists = (
+            requests.get(
+                "{0}{1}.png".format(link_prefix, command["channel_name"].lower())
+            ).status_code
+            == 200
+        )
+
+        if not link_exists:
+            respond(
+                "No schedule has been posted for this class. Please contact your instructor."
+            )
+            return
+
+        app.client.chat_postEphemeral(
+            channel=command["channel_id"],
+            user=command["user_id"],
+            attachments=[
+                {
+                    "type": "image",
+                    "fallback": "Schedule for {0}".format(command["channel_name"]),
+                    "alt_text": "Schedule for {0}".format(command["channel_name"]),
+                    "title": "Schedule for {0}".format(command["channel_name"]),
+                    "image_url": "{0}{1}.png".format(
+                        link_prefix, command["channel_name"].lower()
+                    ),
+                }
+            ],
+        )
+        return
 
     tutor_list = employee_list.loc[
         (employee_list["Course"] == command["channel_name"].upper())
@@ -498,7 +531,9 @@ def tutors(ack, respond, command):
             tutors += "<@" + str(row["user_id"]) + ">\n"
 
     if tutors == "":
-        respond("No tutors are avaiable for this course. Sorry.")
+        respond(
+            'No tutors are currently avaiable for this course. Sorry. You can use "/tutors schedule" to see the tutor schedule.'
+        )
     else:
         respond("Available tutors for this course:\n" + tutors)
 
