@@ -4,8 +4,8 @@ import csv
 import re
 import logging
 import sys
-from typing import ChainMap
 import pandas as pd
+import numpy as np
 import urllib.request
 import git
 import requests
@@ -42,6 +42,7 @@ def main():
     get_students(
         os.path.exists("./dataframes/employees.pkl")
         and os.path.exists("./dataframes/members.pkl")
+        and os.path.exists("./dataframes/instructors.npy")
     )
 
     SocketModeHandler(
@@ -102,6 +103,8 @@ def get_students(from_pickle=False):
 
         member_ids_dataframe.reset_index(drop=True, inplace=True)
         employee_list.reset_index(drop=True, inplace=True)
+
+        load_instructors()
 
         save_lists()
 
@@ -201,6 +204,22 @@ def read_file(file_name):
         logging.info(f"Loaded file: {file_name}")
 
 
+def load_instructors():
+    channel_id = getCoverstationsByName("instructors")
+    call = app.client.conversations_members(channel=channel_id)
+
+    global instructors_list
+    instructors_list = call["members"]
+    while call["response_metadata"]["next_cursor"] != "":
+        call = app.client.conversations_members(
+            channel=channel_id,
+            cursor=call["response_metadata"]["next_cursor"],
+        )
+        instructors_list += call["members"]
+
+    print(instructors_list)
+
+
 @app.event("message")
 def new_message(message, say):
     """
@@ -287,12 +306,21 @@ def new_message(message, say):
                 writer.writerow(message_row)
 
 
-# FIXME: NEED SOMEONE TO TEST WITH
+# FIXME: NEED SOMEONE TO TEST WITH // BROKEN
 
 
 @app.event("member_joined_channel")
-def member_joined(message):
-    print(message)
+def member_left_channel(event, say):
+    # print(event)
+    pass
+
+
+@app.event("member_left_channel")
+def member_left_channel(event):
+    print(event)
+    global instructors_list
+    if event["user"] in instructors_list:
+        app.client.conversations_invite(channel=event["channel"], users=event["user"])
 
 
 @app.command("/verifyme")
@@ -889,6 +917,7 @@ def save_lists():
         os.makedirs("./dataframes")
     employee_list.to_pickle("./dataframes/employees.pkl")
     member_ids_dataframe.to_pickle("./dataframes/members.pkl")
+    np.save("./dataframes/instructors.npy", instructors_list)
     logging.info("Saved.")
 
 
@@ -897,8 +926,10 @@ def read_lists():
 
     global employee_list
     global member_ids_dataframe
+    global instructors_list
     employee_list = pd.read_pickle("./dataframes/employees.pkl")
     member_ids_dataframe = pd.read_pickle("./dataframes/members.pkl")
+    instructors_list = np.load("./dataframes/instructors.npy")
 
     logging.info("Read.")
 

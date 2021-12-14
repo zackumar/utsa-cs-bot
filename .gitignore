@@ -9,9 +9,10 @@ package.json
 /courses/*.csv
 
 slackbot.log
+courses/
 courses/CS1083-001.csv
 courses/CS2124-001.csv
 *.pkl
-
+dataframes/
 __pycache__
 tokens.py
