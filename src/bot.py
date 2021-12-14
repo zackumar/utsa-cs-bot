@@ -14,6 +14,9 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_sdk.errors import SlackApiError
 from commands.help import Help
+from commands.tutors import Tutors
+from commands.updatecourse import UpdateCourse
+from commands.updatelist import UpdateList
 from commands.verifyme import VerifyMe
 from role import Role
 from status import Status
@@ -70,7 +73,14 @@ class Bot:
             and os.path.exists("./dataframes/instructors.npy")
         )
 
-        self.commands = [Tutor(self), VerifyMe(self)]
+        self.commands = [
+            VerifyMe(self),
+            Tutor(self),
+            Tutors(self),
+            UpdateList(self),
+            UpdateCourse(self),
+        ]
+
         Help(self, self.commands)
 
         SocketModeHandler(
@@ -166,7 +176,7 @@ class Bot:
                 row["user_id"] = df.iloc[0]["user_id"]
 
         logging.info("Update finished...")
-        logging.debug(self.member_ids_dataframe)
+        logging.debug(self.member_list)
         logging.debug(self.employee_list)
 
         self.save_lists()
@@ -240,6 +250,7 @@ class Bot:
             logging.info(f"Created course {name}")
 
         except SlackApiError as e:
+            logging.error(e.response)
             return
 
     def get_conversation_by_name(self, name):
@@ -265,7 +276,7 @@ class Bot:
             & (self.employee_list["Role"] == Role.TUTOR)
         ].empty
 
-    def isAdmin(self, command):
+    def is_admin(self, command):
         """Returns true if user is an admin"""
         return self.app.client.users_info(user=command["user_id"])["user"]["is_admin"]
 
