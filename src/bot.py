@@ -14,6 +14,7 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_sdk.errors import SlackApiError
 from commands.help import Help
+from commands.verifyme import VerifyMe
 from role import Role
 from status import Status
 
@@ -69,7 +70,7 @@ class Bot:
             and os.path.exists("./dataframes/instructors.npy")
         )
 
-        self.commands = [Tutor(self)]
+        self.commands = [Tutor(self), VerifyMe(self)]
         Help(self, self.commands)
 
         SocketModeHandler(
@@ -118,7 +119,7 @@ class Bot:
             for file_name in file_name_list:
                 match_info = re.search(r"(CS\d{4})-(\d{3})\.csv", file_name)
                 if match_info != None:
-                    self.createCourse(match_info.group(1))
+                    self.create_course(match_info.group(1))
 
                 self.read_file("./courses/" + file_name)
 
@@ -217,7 +218,7 @@ class Bot:
             logging.info(f"Loaded file: {file_name}")
 
     def load_instructors(self):
-        channel_id = self.getConversationByName("instructors")
+        channel_id = self.get_conversation_by_name("instructors")
         call = self.app.client.conversations_members(channel=channel_id)
 
         self.instructors_list = call["members"]
@@ -230,7 +231,7 @@ class Bot:
 
         print(self.instructors_list)
 
-    def createCourse(self, name):
+    def create_course(self, name):
         """Create a Conversation"""
         try:
             self.app.client.conversations_create(
@@ -241,7 +242,7 @@ class Bot:
         except SlackApiError as e:
             return
 
-    def getConversationByName(self, name):
+    def get_conversation_by_name(self, name):
         """Get channel id by name"""
         try:
             conversation_list = self.app.client.conversations_list(
@@ -282,8 +283,9 @@ class Bot:
         """Read all lists"""
         logging.info("Reading dataframes...")
         self.employee_list = pd.read_pickle("./dataframes/employees.pkl")
-        self.member_ids_dataframe = pd.read_pickle("./dataframes/members.pkl")
+        self.member_list = pd.read_pickle("./dataframes/members.pkl")
         self.instructors_list = np.load("./dataframes/instructors.npy")
+
         logging.info("Read.")
 
 
