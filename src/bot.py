@@ -14,6 +14,7 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_sdk.errors import SlackApiError
 from commands.help import Help
+from commands.removeroles import RemoveRoles
 from commands.tutors import Tutors
 from commands.updatecourse import UpdateCourse
 from commands.updatelist import UpdateList
@@ -79,6 +80,7 @@ class Bot:
             Tutors(self),
             UpdateList(self),
             UpdateCourse(self),
+            RemoveRoles(self),
         ]
 
         Help(self, self.commands)
@@ -226,6 +228,32 @@ class Bot:
 
             self.member_list = self.member_list.append(course_dataframe)
             logging.info(f"Loaded file: {file_name}")
+
+    def remove_roles(self):
+        logging.info("Removing roles...")
+
+        logging.debug(self.member_list)
+        logging.debug(self.employee_list)
+
+        removal_count = 0
+        for index, row in self.member_list.iterrows():
+            if row["Role"] != Role.ADMIN:
+                row["Role"] = None
+                removal_count += 1
+
+        for index, row in self.employee_list.iterrows():
+            if row["Role"] != Role.ADMIN:
+                self.employee_list.drop(index, inplace=True)
+
+                removal_count += 1
+
+        logging.debug(self.member_list)
+        logging.debug(self.employee_list)
+
+        logging.info(f"Removed {removal_count} roles")
+        self.save_lists()
+
+        return removal_count
 
     def load_instructors(self):
         channel_id = self.get_conversation_by_name("instructors")
