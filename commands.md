@@ -1,5 +1,9 @@
 # UTSA Virtual CS Main Lab Commands
 
+The command list for the Virtual Main Lab
+
+All parameters in angled brackets(<>) are required. Parameters in sqaure brackets([]) are optional.
+
 ## Standard Commands
 
 - /verifyme <abc123\>,<first_name\>,<last_name\>
