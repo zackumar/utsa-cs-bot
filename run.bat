@@ -1,1 +1,2 @@
-python ./src/bot.py
+python ./src/main.py
+pause
