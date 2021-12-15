@@ -1,21 +1,20 @@
 from datetime import datetime
 import os
-import csv
 import re
 import logging
 import sys
 import pandas as pd
 import numpy as np
-import urllib.request
-import git
-import requests
 
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_sdk.errors import SlackApiError
 from commands.help import Help
+from commands.removecourses import RemoveCourses
 from commands.removeroles import RemoveRoles
+from commands.resetuser import ResetUser
 from commands.tutors import Tutors
+from commands.update import Update
 from commands.updatecourse import UpdateCourse
 from commands.updatelist import UpdateList
 from commands.verifyme import VerifyMe
@@ -81,6 +80,9 @@ class Bot:
             UpdateList(self),
             UpdateCourse(self),
             RemoveRoles(self),
+            RemoveCourses(self),
+            ResetUser(self),
+            Update(self),
         ]
 
         Help(self, self.commands)
