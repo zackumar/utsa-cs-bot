@@ -10,6 +10,7 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_sdk.errors import SlackApiError
 from commands.help import Help
+from commands.tutor import Tutor
 from commands.removecourses import RemoveCourses
 from commands.removeroles import RemoveRoles
 from commands.resetuser import ResetUser
@@ -18,6 +19,7 @@ from commands.update import Update
 from commands.updatecourse import UpdateCourse
 from commands.updatelist import UpdateList
 from commands.verifyme import VerifyMe
+from events.event import Event
 from events.member_joined_event import MemberJoinedEvent
 from events.member_left_event import MemberLeftEvent
 from events.message_event import MessageEvent
@@ -27,7 +29,6 @@ from status import Status
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import tokens
 
-from commands.tutor import Tutor
 
 logging.basicConfig(
     level=logging.INFO,
@@ -36,13 +37,13 @@ logging.basicConfig(
 )
 
 
-def main():
+# def main():
 
-    bot = Bot()
+#     bot = Bot()
 
 
 class Bot:
-    def __init__(self) -> None:
+    def __init__(self):
         self.app = App(token=tokens.SLACK_BOT_TOKEN)
 
         self.member_list = pd.DataFrame(
@@ -76,32 +77,21 @@ class Bot:
             and os.path.exists("./dataframes/instructors.npy")
         )
 
-        self.commands = [
-            VerifyMe(self),
-            Tutor(self),
-            Tutors(self),
-            UpdateList(self),
-            UpdateCourse(self),
-            RemoveRoles(self),
-            RemoveCourses(self),
-            ResetUser(self),
-            Update(self),
-        ]
-
-        self.events = [
-            MessageEvent(self),
-            MemberLeftEvent(self),
-            MemberJoinedEvent(self),
-        ]
-
         self.remove_all = False
+        self.commands = []
+        self.events = []
 
-        Help(self, self.commands)
-
+    def start(self):
         SocketModeHandler(
             self.app,
             tokens.SLACK_APP_TOKEN,
         ).start()
+
+    def add_commands(self, commands):
+        self.commands = commands
+
+    def add_events(self, events):
+        self.events = events
 
     def get_students(self, from_pickle=False):
         """
@@ -280,7 +270,7 @@ class Bot:
             )
             self.instructors_list += call["members"]
 
-        print(self.instructors_list)
+        # print(self.instructors_list)
 
     def create_course(self, name):
         """Create a Conversation"""
@@ -291,6 +281,10 @@ class Bot:
             logging.info(f"Created course {name}")
 
         except SlackApiError as e:
+            if e.response["error"] == "name_taken":
+                logging.info(f"Course already created: {name}")
+                return
+
             logging.error(e.response)
             return
 
@@ -341,5 +335,5 @@ class Bot:
         logging.info("Read.")
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
