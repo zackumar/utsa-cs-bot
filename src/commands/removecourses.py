@@ -22,6 +22,7 @@ class RemoveCourses(Command):
             return
 
         respond("Removing courses. This may take awhile.")
+        self.bot.remove_all = True
 
         self.bot.remove_roles()
 
@@ -51,3 +52,4 @@ class RemoveCourses(Command):
                     logging.debug("Removed {0} from {1}".format(user, channel["name"]))
 
         respond("Deleted Courses")
+        self.bot.remove_all = False

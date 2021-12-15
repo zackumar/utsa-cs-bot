@@ -18,6 +18,9 @@ from commands.update import Update
 from commands.updatecourse import UpdateCourse
 from commands.updatelist import UpdateList
 from commands.verifyme import VerifyMe
+from events.member_joined_event import MemberJoinedEvent
+from events.member_left_event import MemberLeftEvent
+from events.message_event import MessageEvent
 from role import Role
 from status import Status
 
@@ -84,6 +87,14 @@ class Bot:
             ResetUser(self),
             Update(self),
         ]
+
+        self.events = [
+            MessageEvent(self),
+            MemberLeftEvent(self),
+            MemberJoinedEvent(self),
+        ]
+
+        self.remove_all = False
 
         Help(self, self.commands)
 
