@@ -36,7 +36,7 @@ After you have installed the CS bot, you need to add some files for the bot to u
 
 3. Course schedules need to be a PNG photo with the name matching the course.
 	-	Ex. cs1083.png
-	- These photos need to be pushed onto the main branch of this bot to be used.
+	- These photos need to be pushed into the schedules folder in the main branch of this bot to be used.
 		-	Slack requires photos to have a web url and using github to host them is easy.
 
 4. Create course channels.
