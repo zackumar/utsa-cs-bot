@@ -198,27 +198,7 @@ class Bot:
             course_dataframe["Course"] = courses_series
             course_dataframe["Section"] = section_series
 
-            employee_dataframe = course_dataframe.copy()
-
-            if section_number == 0:
-                course_dataframe["Role"] = Role.TUTOR
-                employee_dataframe["Role"] = Role.TUTOR
-                employee_dataframe["Status"] = Status.OUT
-                self.employee_list = self.employee_list.append(employee_dataframe)
-            elif section_number == 100:
-                course_dataframe["Role"] = Role.INSTRUCTOR
-                employee_dataframe["Role"] = Role.INSTRUCTOR
-                employee_dataframe["Status"] = Status.OUT
-                self.employee_list = self.employee_list.append(employee_dataframe)
-
-            elif section_number == 200:
-                course_dataframe["Role"] = Role.ADMIN
-                employee_dataframe["Role"] = Role.ADMIN
-                employee_dataframe["Status"] = Status.OUT
-                self.employee_list = self.employee_list.append(employee_dataframe)
-
-            elif section_number > 0:
-                course_dataframe["Role"] = Role.STUDENT
+            course_dataframe["Role"] = Role.STUDENT
 
             self.member_list = self.member_list.append(course_dataframe)
             logging.info(f"Loaded file: {file_name}")
