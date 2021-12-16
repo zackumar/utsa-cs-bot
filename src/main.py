@@ -14,8 +14,24 @@ from events.member_joined_event import MemberJoinedEvent
 from events.member_left_event import MemberLeftEvent
 from events.message_event import MessageEvent
 
+import pandas as pd
+import csv
+
 
 def main():
+    employee_list = pd.DataFrame(
+        columns=[
+            "user_id",
+            "First Name",
+            "Last Name",
+            "Username",
+            "Course",
+            "Section",
+            "Role",
+            "Status",
+        ]
+    )
+
     bot = Bot()
 
     # ADD NEW COMMANDS HERE WITH 'bot' AS ITS PARAMETER
