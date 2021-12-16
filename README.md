@@ -42,7 +42,7 @@ After you have installed the CS bot, you need to add some files for the bot to u
 4. Create course channels.
 	- There are two ways to do this. 
 		- You can manually create every course channel and add the bot to it.
-		- In workplace settings > preferences, set `People who can create private channels` to `Everyone` and start the bot (or run `/updatelist reset`). You can set this back to your prefered setting after the bot has created the channels.
+		- In workplace settings > preferences, set `People who can create private channels` to `Everyone` and start the bot (or run `/updatelist reset`). You can set this back to your preferred setting after the bot has created the channels.
 
 5. Run the bot using `run.bat` or `run.sh`!
 
