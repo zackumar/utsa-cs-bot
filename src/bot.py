@@ -5,24 +5,12 @@ import logging
 import sys
 import pandas as pd
 import numpy as np
+import csv
 
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_sdk.errors import SlackApiError
-from commands.help import Help
-from commands.tutor import Tutor
-from commands.removecourses import RemoveCourses
-from commands.removeroles import RemoveRoles
-from commands.resetuser import ResetUser
-from commands.tutors import Tutors
-from commands.update import Update
-from commands.updatecourse import UpdateCourse
-from commands.updatelist import UpdateList
-from commands.verifyme import VerifyMe
-from events.event import Event
-from events.member_joined_event import MemberJoinedEvent
-from events.member_left_event import MemberLeftEvent
-from events.message_event import MessageEvent
+
 from role import Role
 from status import Status
 
@@ -138,14 +126,17 @@ class Bot:
 
                 self.read_file("./courses/" + file_name)
 
+            self.load_instructors()
+            self.load_tutors()
+
             self.member_list.reset_index(drop=True, inplace=True)
             self.employee_list.reset_index(drop=True, inplace=True)
 
-            self.load_instructors()
-
             self.save_lists()
 
-        logging.debug(self.member_list)
+        logging.info(self.member_list)
+        logging.info("EMPLO")
+        logging.info(self.employee_list)
 
     def update_students(self):
         """
@@ -207,30 +198,43 @@ class Bot:
             course_dataframe["Course"] = courses_series
             course_dataframe["Section"] = section_series
 
-            employee_dataframe = course_dataframe.copy()
-
-            if section_number == 0:
-                course_dataframe["Role"] = Role.TUTOR
-                employee_dataframe["Role"] = Role.TUTOR
-                employee_dataframe["Status"] = Status.OUT
-                self.employee_list = self.employee_list.append(employee_dataframe)
-            elif section_number == 100:
-                course_dataframe["Role"] = Role.INSTRUCTOR
-                employee_dataframe["Role"] = Role.INSTRUCTOR
-                employee_dataframe["Status"] = Status.OUT
-                self.employee_list = self.employee_list.append(employee_dataframe)
-
-            elif section_number == 200:
-                course_dataframe["Role"] = Role.ADMIN
-                employee_dataframe["Role"] = Role.ADMIN
-                employee_dataframe["Status"] = Status.OUT
-                self.employee_list = self.employee_list.append(employee_dataframe)
-
-            elif section_number > 0:
-                course_dataframe["Role"] = Role.STUDENT
+            course_dataframe["Role"] = Role.STUDENT
 
             self.member_list = self.member_list.append(course_dataframe)
             logging.info(f"Loaded file: {file_name}")
+
+    def load_tutors(self):
+        with open("./courses/tutors.csv", encoding="utf-8") as f:
+
+            csvreader = csv.reader(f)
+
+            for row in csvreader:
+                print(row)
+                username = row[0]
+                first_name = row[1]
+                last_name = row[2]
+
+                courses = row[3:]
+
+                print(courses)
+
+                for course in courses:
+                    tutor_row = {
+                        "Username": username,
+                        "First Name": first_name,
+                        "Last Name": last_name,
+                        "Course": course,
+                        "Section": 0,
+                        "Role": Role.TUTOR,
+                    }
+
+                    self.member_list = self.member_list.append(
+                        tutor_row, ignore_index=True
+                    )
+                    tutor_row["Status"] = Status.OUT
+                    self.employee_list = self.employee_list.append(
+                        tutor_row, ignore_index=True
+                    )
 
     def remove_roles(self):
         logging.info("Removing roles...")
