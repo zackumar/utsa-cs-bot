@@ -66,12 +66,12 @@ class ExampleCommand(Command):
 After you can add it to the command list in `main.py`. You will also need to pass the bot as a parameter.
 ```python
 commands = [
-		#Your new command
-		ExampleCommand(bot)
+	#Your new command
+	ExampleCommand(bot)
 
-		VerifyMe(bot),
-		Help(bot),
-	]
+	VerifyMe(bot),
+	Help(bot),
+]
 ```
 
 There is no need to manually call the command. Creating a new event is the same process, except you will extend the Event class.
