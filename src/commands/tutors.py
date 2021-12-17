@@ -26,7 +26,7 @@ class Tutors(Command):
             link_exists = (
                 requests.get(
                     "{0}{1}.png".format(
-                        self.link_prefix, command["channel_name"].lower()
+                        self.link_prefix, command["channel_name"].upper()
                     )
                 ).status_code
                 == 200
