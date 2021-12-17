@@ -134,9 +134,9 @@ class Bot:
 
             self.save_lists()
 
-        logging.info(self.member_list)
-        logging.info("EMPLO")
-        logging.info(self.employee_list)
+        logging.debug(self.member_list)
+        logging.debug("EMPLO")
+        logging.debug(self.employee_list)
 
     def update_students(self):
         """
@@ -209,14 +209,14 @@ class Bot:
             csvreader = csv.reader(f)
 
             for row in csvreader:
-                print(row)
+                logging.debug(row)
                 username = row[0]
                 first_name = row[1]
                 last_name = row[2]
 
                 courses = row[3:]
 
-                print(courses)
+                logging.debug(courses)
 
                 for course in courses:
                     tutor_row = {
@@ -234,6 +234,52 @@ class Bot:
                     tutor_row["Status"] = Status.OUT
                     self.employee_list = self.employee_list.append(
                         tutor_row, ignore_index=True
+                    )
+
+    def load_instructors(self):
+        with open("./courses/instructors.csv", encoding="utf-8") as f:
+
+            csvreader = csv.reader(f)
+
+            for row in csvreader:
+                logging.debug(row)
+                username = row[0]
+                first_name = row[1]
+                last_name = row[2]
+
+                courses = row[3:]
+
+                if "all" in courses:
+                    courses = []
+
+                    conversation_list = self.app.client.conversations_list(
+                        types="private_channel"
+                    )
+                    for channel in conversation_list["channels"]:
+                        if (
+                            channel["name"].startswith("cs")
+                            and not "-" in channel["name"]
+                        ):
+                            courses.append(channel["name"].upper())
+
+                logging.debug(courses)
+
+                for course in courses:
+                    instructor_row = {
+                        "Username": username,
+                        "First Name": first_name,
+                        "Last Name": last_name,
+                        "Course": course,
+                        "Section": 0,
+                        "Role": Role.INSTRUCTOR,
+                    }
+
+                    self.member_list = self.member_list.append(
+                        instructor_row, ignore_index=True
+                    )
+                    instructor_row["Status"] = Status.OUT
+                    self.employee_list = self.employee_list.append(
+                        instructor_row, ignore_index=True
                     )
 
     def remove_roles(self):
@@ -261,20 +307,6 @@ class Bot:
         self.save_lists()
 
         return removal_count
-
-    def load_instructors(self):
-        channel_id = self.get_conversation_by_name("instructors")
-        call = self.app.client.conversations_members(channel=channel_id)
-
-        self.instructors_list = call["members"]
-        while call["response_metadata"]["next_cursor"] != "":
-            call = self.app.client.conversations_members(
-                channel=channel_id,
-                cursor=call["response_metadata"]["next_cursor"],
-            )
-            self.instructors_list += call["members"]
-
-        # print(self.instructors_list)
 
     def create_course(self, name):
         """Create a Conversation"""
