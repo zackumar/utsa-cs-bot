@@ -34,15 +34,18 @@ After you have installed the CS bot, you need to add some files for the bot to u
 		```
 	- This file should have no header
 
-3. Course schedules need to be a PNG photo with the name matching the course.
+3. Add all intructors to an `instructors` private channel.
+	- This will be used to re-add instructors if they are removed from their coures channels.
+
+4. Course schedules need to be a PNG photo with the name matching the course.
 	-	Ex. cs1083.png
-	- These photos need to be pushed onto the main branch of this bot to be used.
+	- These photos need to be pushed into the schedules folder in the main branch of this bot to be used.
 		-	Slack requires photos to have a web url and using github to host them is easy.
 
-4. Create course channels.
+5. Create course channels.
 	- There are two ways to do this. 
 		- You can manually create every course channel and add the bot to it.
-		- In workplace settings > preferences, set `People who can create private channels` to `Everyone` and start the bot (or run `/updatelist reset`). You can set this back to your prefered setting after the bot has created the channels.
+		- In workplace settings > preferences, set `People who can create private channels` to `Everyone` and start the bot (or run `/updatelist reset`). You can set this back to your preferred setting after the bot has created the channels.
 
 5. Run the bot using `run.bat` or `run.sh`!
 
