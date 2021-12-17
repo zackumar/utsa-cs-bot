@@ -23,6 +23,8 @@ class Tutors(Command):
 
         if command["text"].lower().strip() == "schedule":
 
+            print(command["channel_name"].upper())
+
             link_exists = (
                 requests.get(
                     "{0}{1}.png".format(
@@ -48,7 +50,7 @@ class Tutors(Command):
                         "alt_text": "Schedule for {0}".format(command["channel_name"]),
                         "title": "Schedule for {0}".format(command["channel_name"]),
                         "image_url": "{0}{1}.png".format(
-                            self.link_prefix, command["channel_name"].lower()
+                            self.link_prefix, command["channel_name"].upper()
                         ),
                     }
                 ],
