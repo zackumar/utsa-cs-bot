@@ -16,7 +16,7 @@ class VerifyMe(Command):
 
     def on_call(self, ack, respond, command):
         """
-        Command to verify a student and add them to their classes.
+        Command to verify a member and add them to their classes.
         /verifyme [abc123],[firstname],[lastname]
         """
 
@@ -113,13 +113,13 @@ class VerifyMe(Command):
                     except SlackApiError as e:
                         if e.response["error"] == "already_in_channel":
                             logging.info(
-                                "Adding student to course: {0} {1} already in course {2}".format(
+                                "Adding member to course: {0} {1} already in course {2}".format(
                                     row["First Name"], row["Last Name"], row["Course"]
                                 )
                             )
                         else:
                             logging.error(
-                                "Error adding student to course {0}: {1}".format(
+                                "Error adding member to course {0}: {1}".format(
                                     row["Course"], e
                                 )
                             )
