@@ -62,6 +62,7 @@ class VerifyMe(Command):
         ]
 
         if is_found_id or verifying_has_id:
+
             if user_matches_existing.empty:
                 respond(
                     "Either you or the person you are trying to verify as is already verified. If you believe this is a mistake, please contact your instructor."

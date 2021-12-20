@@ -1,6 +1,7 @@
 from commands.command import Command
 
 import pandas as pd
+from slack_sdk.errors import SlackApiError
 import logging
 
 logger = logging.getLogger(__name__)
@@ -38,10 +39,16 @@ class ResetUser(Command):
         )
         for channel in conversation_list["channels"]:
             if channel["name"].startswith("cs") and not "-" in channel["name"]:
-
-                self.bot.app.client.conversations_kick(
-                    channel=channel["id"], user=user_id
-                )
-                logging.debug("Removed {0} from {1}".format(user_id, channel["name"]))
+                try:
+                    self.bot.app.client.conversations_kick(
+                        channel=channel["id"], user=user_id
+                    )
+                    logging.debug(
+                        "Removed {0} from {1}".format(user_id, channel["name"])
+                    )
+                except SlackApiError as e:
+                    if e.response["error"] == "not_in_channel":
+                        continue
+                    logger.error(e)
 
         respond(f"Removed User Id from {utsa_id}")
