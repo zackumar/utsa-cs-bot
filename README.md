@@ -55,6 +55,9 @@ After you have installed the CS bot, you need to add some files for the bot to u
 
 7. Run the bot using `run.bat` or `run.sh`!
 
+## Commands
+Check out all the available commands in [commands.md](https://github.com/zackumar/utsa-cs-bot/blob/main/commands.md)
+
 ## Adding a command or event
 
 You can add a command by extending the `Command` class.
