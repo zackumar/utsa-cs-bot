@@ -66,6 +66,8 @@ class Bot:
         )
 
         self.remove_all = False
+        self.large_invite = False
+
         self.commands = []
         self.events = []
 

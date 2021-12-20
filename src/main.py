@@ -1,4 +1,5 @@
 from bot import Bot
+from commands.adminremove import AdminRemove
 from commands.help import Help
 from commands.removecourses import RemoveCourses
 from commands.removeroles import RemoveRoles
@@ -36,6 +37,7 @@ def main():
 
     # ADD NEW COMMANDS HERE WITH 'bot' AS ITS PARAMETER
     commands = [
+        AdminRemove(bot),
         VerifyMe(bot),
         Tutor(bot),
         Tutors(bot),

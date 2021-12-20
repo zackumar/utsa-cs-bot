@@ -24,6 +24,8 @@ class UpdateCourse(Command):
             respond("You need to be an admin to use this command.")
             return
 
+        self.bot.large_invite = True
+
         respond("Starting course update. This may take awhile.")
 
         self.bot.update_students()
@@ -132,6 +134,8 @@ class UpdateCourse(Command):
             for user in members:
                 if user == bot_id:
                     continue
+                if self.bot.is_admin({"user_id": user}):
+                    continue
 
                 person = self.bot.member_list.loc[
                     (self.bot.member_list["user_id"] == user)
@@ -164,6 +168,8 @@ class UpdateCourse(Command):
                     logging.info(
                         "Added {0} to {1}".format(user, command["channel_name"])
                     )
+
+        self.bot.large_invite = False
 
         logging.info("Finished update.")
         respond("Finished update.")
