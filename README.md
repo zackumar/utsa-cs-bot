@@ -34,8 +34,12 @@ After you have installed the CS bot, you need to add some files for the bot to u
 		```
 	- This file should have no header
 
-3. Add all intructors to an `instructors` private channel.
-	- This will be used to re-add instructors if they are removed from their coures channels.
+2. All instructors need to be added to the `instructors.csv` file.
+	-	The format of the file goes
+		```
+		abc123,first_name,last_name,course1,course2...
+		```
+	- This file should have no header
 
 4. Course schedules need to be a PNG photo with the name matching the course.
 	-	Ex. cs1083.png
@@ -47,7 +51,9 @@ After you have installed the CS bot, you need to add some files for the bot to u
 		- You can manually create every course channel and add the bot to it.
 		- In workplace settings > preferences, set `People who can create private channels` to `Everyone` and start the bot (or run `/updatelist reset`). You can set this back to your preferred setting after the bot has created the channels.
 
-5. Run the bot using `run.bat` or `run.sh`!
+6. Create `cs-tutor-time-reporting` channel and add the bot to that.
+
+7. Run the bot using `run.bat` or `run.sh`!
 
 ## Adding a command or event
 
