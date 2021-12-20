@@ -16,6 +16,12 @@ class MemberJoinedEvent(Event):
         if event["inviter"] == self.bot.bot_id:
             return
 
+        if self.bot.is_admin({"user_id": event["inviter"]}):
+            return
+
+        if event["user"] == self.bot.bot_id:
+            return
+
         info = self.bot.app.client.conversations_info(channel=event["channel"])
         name = info["channel"]["name"].upper()
 

@@ -49,6 +49,12 @@ class Tutor(Command):
             ] = Status.IN
 
             if message == None:
+                self.bot.app.client.chat_postMessage(
+                    channel=self.bot.get_conversation_by_name(
+                        "cs-tutor-time-reporting"
+                    ),
+                    text="<<@{0}>>: {1}".format(str(command["user_id"]), "in"),
+                )
                 respond("You are now clocked in.")
                 return
 
@@ -66,6 +72,11 @@ class Tutor(Command):
                     ),
                     text=broadcast,
                 )
+
+            self.bot.app.client.chat_postMessage(
+                channel=self.bot.get_conversation_by_name("cs-tutor-time-reporting"),
+                text="<<@{0}>>: {1}".format(str(command["user_id"]), "in"),
+            )
 
             respond(
                 'You are now clocked in. Sent message: "'
@@ -86,6 +97,11 @@ class Tutor(Command):
             self.bot.employee_list.loc[
                 self.bot.employee_list["user_id"] == command["user_id"], "Status"
             ] = Status.OUT
+
+            self.bot.app.client.chat_postMessage(
+                channel=self.bot.get_conversation_by_name("cs-tutor-time-reporting"),
+                text="<<@{0}>>: {1}".format(str(command["user_id"]), "out"),
+            )
 
             respond("You are now clocked out.")
 
