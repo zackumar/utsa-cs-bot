@@ -1,5 +1,7 @@
 from commands.command import Command
 
+from role import Role
+
 import pandas as pd
 from slack_sdk.errors import SlackApiError
 
@@ -68,6 +70,19 @@ class VerifyMe(Command):
                     "Either you or the person you are trying to verify as is already verified. If you believe this is a mistake, please contact your instructor."
                 )
                 return
+
+        is_tutor = not self.bot.member_list.loc[
+            (self.bot.member_list["Username"] == utsa_id)
+            & (self.bot.member_list["Role"] == Role.TUTOR)
+        ].empty
+
+        if is_tutor:
+            self.bot.app.client.conversations_invite(
+                channel=self.bot.get_conversation_by_name(
+                    str("cs-tutor-time-reporting").lower()
+                ),
+                users=command["user_id"],
+            )
 
         for index, row in self.bot.member_list.iterrows():
             if str(row["Username"]).lower() == utsa_id:
