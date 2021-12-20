@@ -13,6 +13,9 @@ class MemberJoinedEvent(Event):
         if self.bot.large_invite == True:
             return
 
+        if event["inviter"] == self.bot.bot_id:
+            return
+
         info = self.bot.app.client.conversations_info(channel=event["channel"])
         name = info["channel"]["name"].upper()
 

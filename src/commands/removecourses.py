@@ -46,6 +46,10 @@ class RemoveCourses(Command):
                 for user in members:
                     if user == bot_id:
                         continue
+                    if (command["text"].strip() == "keep") and (
+                        self.bot.is_admin({"user_id": user})
+                    ):
+                        continue
                     self.bot.app.client.conversations_kick(
                         channel=channel["id"], user=user
                     )

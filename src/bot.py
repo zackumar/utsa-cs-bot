@@ -62,7 +62,6 @@ class Bot:
         self.get_students(
             os.path.exists("./dataframes/employees.pkl")
             and os.path.exists("./dataframes/members.pkl")
-            and os.path.exists("./dataframes/instructors.npy")
         )
 
         self.remove_all = False
@@ -70,6 +69,8 @@ class Bot:
 
         self.commands = []
         self.events = []
+
+        self.bot_id = self.app.client.auth_test()["user_id"]
 
     def start(self):
         SocketModeHandler(
@@ -360,7 +361,6 @@ class Bot:
             os.makedirs("./dataframes")
         self.employee_list.to_pickle("./dataframes/employees.pkl")
         self.member_list.to_pickle("./dataframes/members.pkl")
-        np.save("./dataframes/instructors.npy", self.instructors_list)
         logging.info("Saved.")
 
     def read_lists(self):
@@ -368,7 +368,6 @@ class Bot:
         logging.info("Reading dataframes...")
         self.employee_list = pd.read_pickle("./dataframes/employees.pkl")
         self.member_list = pd.read_pickle("./dataframes/members.pkl")
-        self.instructors_list = np.load("./dataframes/instructors.npy")
 
         logging.info("Read.")
 

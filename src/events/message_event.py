@@ -106,5 +106,7 @@ class MessageEvent(Event):
         except SlackApiError as e:
             if e.response["error"] == "is_archived":
                 return
-
             logger.error(e)
+        except Exception as e:
+            logger.debug(e)
+            pass

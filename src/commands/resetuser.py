@@ -1,5 +1,6 @@
 from commands.command import Command
 
+import pandas as pd
 import logging
 
 logger = logging.getLogger(__name__)
@@ -21,8 +22,26 @@ class ResetUser(Command):
 
         utsa_id = command["text"].lower().strip()
 
+        user_id = self.bot.member_list.loc[
+            self.bot.member_list["Username"] == utsa_id
+        ].iloc[0]["user_id"]
+
+        if pd.isnull(user_id):
+            return
+
         self.bot.member_list.loc[
             self.bot.member_list["Username"] == utsa_id, "user_id"
         ] = None
+
+        conversation_list = self.bot.app.client.conversations_list(
+            types="private_channel"
+        )
+        for channel in conversation_list["channels"]:
+            if channel["name"].startswith("cs") and not "-" in channel["name"]:
+
+                self.bot.app.client.conversations_kick(
+                    channel=channel["id"], user=user_id
+                )
+                logging.debug("Removed {0} from {1}".format(user_id, channel["name"]))
 
         respond(f"Removed User Id from {utsa_id}")
