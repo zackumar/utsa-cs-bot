@@ -23,8 +23,6 @@ class Tutors(Command):
 
         if command["text"].lower().strip() == "schedule":
 
-            print(command["channel_name"].upper())
-
             link_exists = (
                 requests.get(
                     "{0}{1}.png".format(

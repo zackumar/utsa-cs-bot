@@ -324,7 +324,13 @@ class Bot:
                 logging.info(f"Course already created: {name}")
                 return
 
+            if e.response["error"] == "restricted_action":
+                logging.warn(
+                    f"Tried creating {name}. Private channel creation restricted."
+                )
+
             logging.error(e.response)
+
             return
 
     def get_conversation_by_name(self, name):
