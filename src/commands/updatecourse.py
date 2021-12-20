@@ -163,7 +163,7 @@ class UpdateCourse(Command):
             for index, row in class_members.iterrows():
                 if row["user_id"] not in user:
                     self.bot.app.client.conversations_invite(
-                        channel=command["channel_id"], user=row["user_id"]
+                        channel=command["channel_id"], users=row["user_id"]
                     )
                     logging.info(
                         "Added {0} to {1}".format(user, command["channel_name"])

@@ -10,6 +10,10 @@ class MemberJoinedEvent(Event):
         super().__init__(bot, "member_joined_channel")
 
     def on_call(self, event):
+
+        if "inviter" not in event:
+            return
+
         if self.bot.large_invite == True:
             return
 

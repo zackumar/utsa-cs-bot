@@ -34,6 +34,8 @@ class ResetUser(Command):
             self.bot.member_list["Username"] == utsa_id, "user_id"
         ] = None
 
+        self.bot.remove_all = True
+
         conversation_list = self.bot.app.client.conversations_list(
             types="private_channel"
         )
@@ -43,7 +45,7 @@ class ResetUser(Command):
                     self.bot.app.client.conversations_kick(
                         channel=channel["id"], user=user_id
                     )
-                    logging.debug(
+                    logger.debug(
                         "Removed {0} from {1}".format(user_id, channel["name"])
                     )
                 except SlackApiError as e:
@@ -52,3 +54,5 @@ class ResetUser(Command):
                     logger.error(e)
 
         respond(f"Removed User Id from {utsa_id}")
+
+        self.bot.remove_all = False

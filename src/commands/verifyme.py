@@ -77,12 +77,16 @@ class VerifyMe(Command):
         ].empty
 
         if is_tutor:
-            self.bot.app.client.conversations_invite(
-                channel=self.bot.get_conversation_by_name(
-                    str("cs-tutor-time-reporting").lower()
-                ),
-                users=command["user_id"],
-            )
+            try:
+                self.bot.app.client.conversations_invite(
+                    channel=self.bot.get_conversation_by_name(
+                        str("cs-tutor-time-reporting").lower()
+                    ),
+                    users=command["user_id"],
+                )
+            except SlackApiError as e:
+                if e.response["error"] == "already_in_channel":
+                    pass
 
         for index, row in self.bot.member_list.iterrows():
             if str(row["Username"]).lower() == utsa_id:
