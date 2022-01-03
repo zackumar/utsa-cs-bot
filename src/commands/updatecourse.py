@@ -6,8 +6,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# FIXME: BROKEN???
-
 
 class UpdateCourse(Command):
     def __init__(self, bot):
@@ -25,6 +23,7 @@ class UpdateCourse(Command):
             return
 
         self.bot.large_invite = True
+        self.bot.remove_all = True
 
         respond("Starting course update. This may take awhile.")
 
@@ -170,6 +169,7 @@ class UpdateCourse(Command):
                     )
 
         self.bot.large_invite = False
+        self.bot.remove_all = False
 
         logging.info("Finished update.")
         respond("Finished update.")
