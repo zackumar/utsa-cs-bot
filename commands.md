@@ -24,7 +24,7 @@ All parameters in angled brackets(<>) are required. Parameters in sqaure bracket
 	- Update course list and automatically remove/add students in course (If student is already verified)
 	- Pass in the `all` parameter to update all course channels. Otherwise it will only update course the command was ran in.
 	- **Note**: This command may take awhile
-- `/updatelist [reset]`
+- `/updatelist [force_verify]`
 	- Update backend list without altering channels
 	- Pass in the `reset` parameter to remove Slack user_ids associated with members
 - `/removeroles`
