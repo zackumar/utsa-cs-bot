@@ -4,6 +4,8 @@ from status import Status
 import requests
 import logging
 
+from slack_sdk.errors import SlackApiError
+
 logger = logging.getLogger(__name__)
 
 
@@ -23,36 +25,64 @@ class Tutors(Command):
 
         if command["text"].lower().strip() == "schedule":
 
-            link_exists = (
-                requests.get(
-                    "{0}{1}.png".format(
-                        self.link_prefix, command["channel_name"].upper()
+            files = self.bot.app.client.files_list(
+                channel=self.bot.get_conversation_by_name("schedules"),
+                # types="images",
+            )["files"]
+
+            for file in files:
+
+                if file["name"][0:-4].lower() == command["channel_name"]:
+                    print(file)
+
+                    pub_secret = file["permalink_public"].rsplit("-", 1)[1]
+                    print(pub_secret)
+                    file_link = "{0}?pub_secret={1}".format(
+                        file["url_private"], pub_secret
                     )
-                ).status_code
-                == 200
+
+                    print(file_link)
+
+                    try:
+                        self.bot.app.client.chat_postEphemeral(
+                            channel=command["channel_id"],
+                            user=command["user_id"],
+                            text="Schedule for {0}".format(command["channel_name"]),
+                            blocks=[
+                                {
+                                    "type": "image",
+                                    "title": {
+                                        "type": "plain_text",
+                                        "text": "Schedule for {0}".format(
+                                            command["channel_name"]
+                                        ),
+                                    },
+                                    "image_url": file_link,
+                                    "alt_text": "Schedule for {0}".format(
+                                        command["channel_name"]
+                                    ),
+                                }
+                            ],
+                        )
+                        return
+
+                    except SlackApiError as e:
+                        if e.response["error"] == "invalid_blocks":
+                            logging.warn(
+                                "Schedule {0} is not public. Please create external link."
+                            )
+                        else:
+                            logging.error(e)
+
+                        respond(
+                            "No schedule has been posted for this course. Please contact your instructor."
+                        )
+                        return
+
+            respond(
+                "No schedule has been posted for this course. Please contact your instructor."
             )
 
-            if not link_exists:
-                respond(
-                    "No schedule has been posted for this course. Please contact your instructor."
-                )
-                return
-
-            self.bot.app.client.chat_postEphemeral(
-                channel=command["channel_id"],
-                user=command["user_id"],
-                attachments=[
-                    {
-                        "type": "image",
-                        "fallback": "Schedule for {0}".format(command["channel_name"]),
-                        "alt_text": "Schedule for {0}".format(command["channel_name"]),
-                        "title": "Schedule for {0}".format(command["channel_name"]),
-                        "image_url": "{0}{1}.png".format(
-                            self.link_prefix, command["channel_name"].upper()
-                        ),
-                    }
-                ],
-            )
             return
 
         tutor_list = self.bot.employee_list.loc[
