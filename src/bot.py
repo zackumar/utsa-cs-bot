@@ -356,6 +356,13 @@ class Bot:
             & (self.employee_list["Role"] == Role.TUTOR)
         ].empty
 
+    def is_instructor(self, command):
+        """Returns true if user is an instructor"""
+        return not self.employee_list.loc[
+            (self.employee_list["user_id"] == command["user_id"])
+            & (self.employee_list["Role"] == Role.INSTRUCTOR)
+        ].empty
+
     def is_admin(self, command):
         """Returns true if user is an admin"""
         return self.app.client.users_info(user=command["user_id"])["user"]["is_admin"]
