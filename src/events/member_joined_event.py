@@ -23,6 +23,9 @@ class MemberJoinedEvent(Event):
         if self.bot.is_admin({"user_id": event["inviter"]}):
             return
 
+        if self.bot.is_instructor({"user_id": event["inviter"]}):
+            return
+
         if event["user"] == self.bot.bot_id:
             return
 
