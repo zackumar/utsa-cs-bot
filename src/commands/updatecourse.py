@@ -18,8 +18,8 @@ class UpdateCourse(Command):
 
         ack()
 
-        if not self.bot.is_admin(command):
-            respond("You need to be an admin to use this command.")
+        if not self.bot.is_admin(command) or not self.bot.is_instuctor(command):
+            respond("You need to be an admin/instructor to use this command.")
             return
 
         self.bot.large_invite = True
@@ -32,6 +32,11 @@ class UpdateCourse(Command):
         bot_id = self.bot.app.client.auth_test()["user_id"]
 
         if command["text"].lower().strip() == "all":
+            if not self.bot.is_admin(command):
+                respond(
+                    "You need to be an admin to use this command. Did you mean to just do '/updatecourse'?"
+                )
+                return
             logging.info("Starting course channel update on all channels...")
             respond("Starting course channel update on all channels...")
             conversation_list = self.bot.app.client.conversations_list(
