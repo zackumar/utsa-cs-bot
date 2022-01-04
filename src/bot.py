@@ -124,9 +124,9 @@ class Bot:
 
                 self.read_file("./courses/" + file_name)
 
-            self.load_admins()
-            self.load_instructors()
             self.load_tutors()
+            self.load_instructors()
+            self.load_admins()
 
             self.member_list.reset_index(drop=True, inplace=True)
             self.employee_list.reset_index(drop=True, inplace=True)
@@ -235,6 +235,8 @@ class Bot:
                         tutor_row, ignore_index=True
                     )
 
+                    self.create_course(course)
+
     def load_instructors(self):
         with open("./courses/instructors.csv", encoding="utf-8") as f:
 
@@ -281,6 +283,8 @@ class Bot:
                         instructor_row, ignore_index=True
                     )
 
+                    self.create_course(course)
+
     def load_admins(self):
         with open("./courses/admins.csv", encoding="utf-8") as f:
 
@@ -326,6 +330,8 @@ class Bot:
                     self.employee_list = self.employee_list.append(
                         admin_row, ignore_index=True
                     )
+
+                    self.create_course(course)
 
     def remove_roles(self):
         logging.info("Removing roles...")
