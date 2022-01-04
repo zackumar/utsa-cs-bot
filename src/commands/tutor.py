@@ -1,109 +1,99 @@
 from commands.command import Command
 from status import Status
 
-import re
+import requests
 import logging
+
+from slack_sdk.errors import SlackApiError
 
 logger = logging.getLogger(__name__)
 
 
-class Tutor(Command):
+class Tutors(Command):
     def __init__(self, bot):
-        super().__init__(bot, "/tutor", help="Tutor commands")
+        super().__init__(bot, "/tutors", help="Tutors command")
+        self.link_prefix = (
+            "https://raw.githubusercontent.com/zackumar/utsa-cs-bot/main/schedules/"
+        )
 
     def on_call(self, ack, respond, command):
         """
-        Tutor clock in/out command
+        List available tutors for the course the command is ran in
         """
 
         ack()
 
-        if not self.bot.is_tutor(command):
-            respond("You need to be a tutor to use this command.")
-            return
+        if command["text"].lower().strip() == "schedule":
 
-        split = re.search(
-            r"(in|out)\s?(?:[\"]([\s\S]+)[\"])?", command["text"], re.IGNORECASE
-        )
+            files = self.bot.app.client.files_list(
+                channel=self.bot.get_conversation_by_name("schedules"),
+                # types="images",
+            )["files"]
 
-        if split == None:
-            respond("Please use this format: /tutor [in|out] <message>")
-            return
+            for file in files:
 
-        status = split.group(1)
-        message = split.group(2)
+                if file["name"][0:-4].lower() == command["channel_name"]:
 
-        if status == "in":
+                    pub_secret = file["permalink_public"].rsplit("-", 1)[1]
+                    file_link = "{0}?pub_secret={1}".format(
+                        file["url_private"], pub_secret
+                    )
 
-            if (
-                self.bot.employee_list.loc[
-                    self.bot.employee_list["user_id"] == command["user_id"]
-                ].iloc[0]["Status"]
-                == Status.IN
-            ):
-                respond("You are already clocked in.")
-                return
+                    try:
+                        self.bot.app.client.chat_postEphemeral(
+                            channel=command["channel_id"],
+                            user=command["user_id"],
+                            text="Schedule for {0}".format(command["channel_name"]),
+                            blocks=[
+                                {
+                                    "type": "image",
+                                    "title": {
+                                        "type": "plain_text",
+                                        "text": "Schedule for {0}".format(
+                                            command["channel_name"]
+                                        ),
+                                    },
+                                    "image_url": file_link,
+                                    "alt_text": "Schedule for {0}".format(
+                                        command["channel_name"]
+                                    ),
+                                }
+                            ],
+                        )
+                        return
 
-            self.bot.employee_list.loc[
-                self.bot.employee_list["user_id"] == command["user_id"], "Status"
-            ] = Status.IN
+                    except SlackApiError as e:
+                        if e.response["error"] == "invalid_blocks":
+                            logging.warn(
+                                "Schedule {0} is not public. Please create external link."
+                            )
+                        else:
+                            logging.error(e)
 
-            if message == None:
-                self.bot.app.client.chat_postMessage(
-                    channel=self.bot.get_conversation_by_name(
-                        "cs-tutor-time-reporting"
-                    ),
-                    text="<<@{0}>>: {1}".format(str(command["user_id"]), "in"),
-                )
-                respond("You are now clocked in.")
-                return
-
-            tutor = self.bot.employee_list.loc[
-                self.bot.employee_list["user_id"] == command["user_id"]
-            ]
-
-            for index, row in tutor.iterrows():
-
-                broadcast = "<<@{0}>>: {1}".format(str(row["user_id"]), message)
-
-                self.bot.app.client.chat_postMessage(
-                    channel=self.bot.get_conversation_by_name(
-                        str(row["Course"]).lower()
-                    ),
-                    text=broadcast,
-                )
-
-            self.bot.app.client.chat_postMessage(
-                channel=self.bot.get_conversation_by_name("cs-tutor-time-reporting"),
-                text="<<@{0}>>: {1}".format(str(command["user_id"]), "in"),
-            )
+                        respond(
+                            "No schedule has been posted for this course. Please contact your instructor."
+                        )
+                        return
 
             respond(
-                'You are now clocked in. Sent message: "'
-                + split.group(2)
-                + '" to all your channels'
+                "No schedule has been posted for this course. Please contact your instructor."
             )
 
-        elif status == "out":
-            if (
-                self.bot.employee_list.loc[
-                    self.bot.employee_list["user_id"] == command["user_id"]
-                ].iloc[0]["Status"]
-                == Status.OUT
-            ):
-                respond("You are already clocked out.")
-                return
+            return
 
-            self.bot.employee_list.loc[
-                self.bot.employee_list["user_id"] == command["user_id"], "Status"
-            ] = Status.OUT
+        tutor_list = self.bot.employee_list.loc[
+            (self.bot.employee_list["Course"] == command["channel_name"].upper())
+        ]
 
-            self.bot.app.client.chat_postMessage(
-                channel=self.bot.get_conversation_by_name("cs-tutor-time-reporting"),
-                text="<<@{0}>>: {1}".format(str(command["user_id"]), "out"),
+        tutors = ""
+
+        for index, row in tutor_list.iterrows():
+            if row["Status"] == Status.IN:
+                tutors += "<@" + str(row["user_id"]) + ">\n"
+
+        if tutors == "":
+            respond(
+                'No tutors are currently avaiable for this course. Sorry. You can use "/tutors schedule" to see the tutor schedule.'
             )
-
-            respond("You are now clocked out.")
-
         else:
-            respond("Please use this format: /tutor [in|out]")
+            respond("Available tutors for this course:\n" + tutors)
