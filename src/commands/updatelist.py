@@ -20,7 +20,7 @@ class UpdateList(Command):
             respond("You need to be an admin to use this command.")
             return
 
-        if command["text"].lower().strip() == "reset":
+        if command["text"].lower().strip() == "force_verify":
             respond("Starting data update and removing Slack User IDs...")
             self.bot.get_students()
             respond("Update complete.")
