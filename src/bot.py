@@ -25,11 +25,6 @@ logging.basicConfig(
 )
 
 
-# def main():
-
-#     bot = Bot()
-
-
 class Bot:
     def __init__(self):
         self.app = App(token=tokens.SLACK_BOT_TOKEN)

@@ -130,7 +130,21 @@ class VerifyMe(Command):
                     in_class = True
 
         if in_class:
-            respond(f"Welcome {proper_name}! You're good to go, thanks!")
+            roles = []
+
+            if self.bot.is_admin:
+                roles.append("Admin")
+            if self.bot.is_instructor:
+                roles.append("Instructor")
+            if self.bot.is_tutor:
+                roles.append("Tutor")
+
+            if roles:
+                role = "(Roles: " + ", ".join(roles) + ")"
+            else:
+                role = ""
+
+            respond(f"Welcome {proper_name}! You're good to go, thanks! {role}")
             self.bot.save_lists()
             logging.debug(self.bot.member_list)
             logging.debug(self.bot.employee_list)
