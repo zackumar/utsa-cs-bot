@@ -132,11 +132,11 @@ class VerifyMe(Command):
         if in_class:
             roles = []
 
-            if self.bot.is_admin:
+            if self.bot.is_admin(command):
                 roles.append("Admin")
-            if self.bot.is_instructor:
+            if self.bot.is_instructor(command):
                 roles.append("Instructor")
-            if self.bot.is_tutor:
+            if self.bot.is_tutor(command):
                 roles.append("Tutor")
 
             if roles:
