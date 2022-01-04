@@ -235,8 +235,6 @@ class Bot:
                         tutor_row, ignore_index=True
                     )
 
-                    self.create_course(course)
-
     def load_instructors(self):
         with open("./courses/instructors.csv", encoding="utf-8") as f:
 
@@ -283,8 +281,6 @@ class Bot:
                         instructor_row, ignore_index=True
                     )
 
-                    self.create_course(course)
-
     def load_admins(self):
         with open("./courses/admins.csv", encoding="utf-8") as f:
 
@@ -330,8 +326,6 @@ class Bot:
                     self.employee_list = self.employee_list.append(
                         admin_row, ignore_index=True
                     )
-
-                    self.create_course(course)
 
     def remove_roles(self):
         logging.info("Removing roles...")
