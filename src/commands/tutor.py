@@ -23,7 +23,7 @@ class Tutor(Command):
             return
 
         split = re.search(
-            r"(in|out)\s?(?:[\"']([\s\S]+)[\"'])?", command["text"], re.IGNORECASE
+            r"(in|out)\s?(?:[\"]([\s\S]+)[\"])?", command["text"], re.IGNORECASE
         )
 
         if split == None:
