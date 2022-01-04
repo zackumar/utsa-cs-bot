@@ -22,7 +22,8 @@ All parameters in angled brackets(<>) are required. Parameters in sqaure bracket
 ## Admin Commands
 - `/updatecourse [all]`
 	- Update course list and automatically remove/add students in course (If student is already verified)
-	- Pass in the `all` parameter to update all course channels. Otherwise it will only update course the command was ran in.
+	- This command can be used by instructors as well.
+	- Pass in the `all` parameter to update all course channels. Otherwise it will only update course the command was ran in. This parameter is also only for admins. 
 	- **Note**: This command may take awhile
 - `/updatelist [force_verify]`
 	- Update backend list without altering channels
