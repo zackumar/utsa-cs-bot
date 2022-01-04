@@ -129,6 +129,7 @@ class Bot:
 
                 self.read_file("./courses/" + file_name)
 
+            self.load_admins()
             self.load_instructors()
             self.load_tutors()
 
@@ -285,6 +286,52 @@ class Bot:
                         instructor_row, ignore_index=True
                     )
 
+    def load_admins(self):
+        with open("./courses/admins.csv", encoding="utf-8") as f:
+
+            csvreader = csv.reader(f)
+
+            for row in csvreader:
+                logging.debug(row)
+                username = row[0]
+                first_name = row[1]
+                last_name = row[2]
+
+                courses = ["all"]
+
+                if "all" in courses:
+                    courses = []
+
+                    conversation_list = self.app.client.conversations_list(
+                        types="private_channel"
+                    )
+                    for channel in conversation_list["channels"]:
+                        if (
+                            channel["name"].startswith("cs")
+                            and not "-" in channel["name"]
+                        ):
+                            courses.append(channel["name"].upper())
+
+                logging.debug(courses)
+
+                for course in courses:
+                    admin_row = {
+                        "Username": username,
+                        "First Name": first_name,
+                        "Last Name": last_name,
+                        "Course": course,
+                        "Section": 0,
+                        "Role": Role.ADMIN,
+                    }
+
+                    self.member_list = self.member_list.append(
+                        admin_row, ignore_index=True
+                    )
+                    admin_row["Status"] = Status.OUT
+                    self.employee_list = self.employee_list.append(
+                        admin_row, ignore_index=True
+                    )
+
     def remove_roles(self):
         logging.info("Removing roles...")
 
@@ -365,7 +412,10 @@ class Bot:
 
     def is_admin(self, command):
         """Returns true if user is an admin"""
-        return self.app.client.users_info(user=command["user_id"])["user"]["is_admin"]
+        return not self.employee_list.loc[
+            (self.employee_list["user_id"] == command["user_id"])
+            & (self.employee_list["Role"] == Role.ADMIN)
+        ].empty
 
     def save_lists(self):
         """Save all lists for fast reload"""
