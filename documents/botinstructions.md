@@ -50,10 +50,13 @@ SLACK_APP_TOKEN = "YOUR SLACK APP TOKEN"
 3. Create a channel called `schedules` and add the bot to this channel
 
 	1. To add a schedule, drag the png into the message box and send it as a file.
+	
 		![Add schedule](./images/Schedule1.png)
 	2. Hovering over the image, click on the vertical menu that says more actions.
+	
 		![More actions](./images/Schedule-actions.png)
 	3. Click on `Create external link...`
+	
 		![Create Link](./images/Schedule-link.png)
 	4. To verify this, `Create external link` should change to `View external link` if you follow the same steps.
 	5. Do this for all schedules.
