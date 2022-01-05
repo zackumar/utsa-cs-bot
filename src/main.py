@@ -1,6 +1,7 @@
 from bot import Bot
 from commands.adminremove import AdminRemove
 from commands.help import Help
+from commands.ping import Ping
 from commands.removecourses import RemoveCourses
 from commands.removeroles import RemoveRoles
 from commands.resetuser import ResetUser
@@ -20,18 +21,6 @@ import csv
 
 
 def main():
-    employee_list = pd.DataFrame(
-        columns=[
-            "user_id",
-            "First Name",
-            "Last Name",
-            "Username",
-            "Course",
-            "Section",
-            "Role",
-            "Status",
-        ]
-    )
 
     bot = Bot()
 
@@ -48,6 +37,7 @@ def main():
         ResetUser(bot),
         Update(bot),
         Help(bot),
+        Ping(bot),
     ]
 
     # ADD NEW EVENTS HERE WITH 'bot' AS ITS PARAMETER
