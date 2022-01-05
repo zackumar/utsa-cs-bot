@@ -64,6 +64,8 @@ class Bot:
 
         self.commands = []
         self.events = []
+        self.tutor_categories = ["cs-tutors"]
+        self.course_prefixes = ["cs"]
 
         self.bot_id = self.app.client.auth_test()["user_id"]
 
@@ -78,6 +80,12 @@ class Bot:
 
     def add_events(self, events):
         self.events = events
+
+    def add_tutor_categories(self, categories):
+        self.tutor_categories = categories
+
+    def add_course_prefixes(self, prefixes):
+        self.course_prefixes = prefixes
 
     def get_students(self, from_pickle=False):
         """

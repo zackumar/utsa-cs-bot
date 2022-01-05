@@ -1,4 +1,5 @@
 from bot import Bot
+
 from commands.adminremove import AdminRemove
 from commands.help import Help
 from commands.ping import Ping
@@ -7,22 +8,32 @@ from commands.removeroles import RemoveRoles
 from commands.resetuser import ResetUser
 from commands.tutors import Tutors
 from commands.tutor import Tutor
-
 from commands.update import Update
 from commands.updatecourse import UpdateCourse
 from commands.updatelist import UpdateList
 from commands.verifyme import VerifyMe
+
 from events.member_joined_event import MemberJoinedEvent
 from events.member_left_event import MemberLeftEvent
 from events.message_event import MessageEvent
-
-import pandas as pd
-import csv
 
 
 def main():
 
     bot = Bot()
+
+    tutor_categories = [
+        "cs-tutors",
+        "matlab-tutors",
+    ]
+
+    course_prefixes = [
+        "CS",
+        "DS",
+    ]
+
+    bot.add_tutor_categories(tutor_categories)
+    bot.add_course_prefixes(course_prefixes)
 
     # ADD NEW COMMANDS HERE WITH 'bot' AS ITS PARAMETER
     commands = [
