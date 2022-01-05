@@ -428,7 +428,3 @@ class Bot:
         self.member_list = pd.read_pickle("./dataframes/members.pkl")
 
         logging.info("Read.")
-
-
-# if __name__ == "__main__":
-#     main()
