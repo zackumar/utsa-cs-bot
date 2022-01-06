@@ -40,7 +40,8 @@ class ResetUser(Command):
             types="private_channel"
         )
         for channel in conversation_list["channels"]:
-            if channel["name"].startswith("cs") and not "-" in channel["name"]:
+            if self.bot.is_course_channel(channel["name"]):
+
                 try:
                     self.bot.app.client.conversations_kick(
                         channel=channel["id"], user=user_id

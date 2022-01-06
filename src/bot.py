@@ -65,7 +65,8 @@ class Bot:
         self.commands = []
         self.events = []
         self.tutor_categories = ["cs-tutors"]
-        self.course_prefixes = ["cs"]
+        self.announce_time_reporting = ["cs-tutors"]
+        self.course_prefixes = ["CS"]
 
         self.bot_id = self.app.client.auth_test()["user_id"]
 
@@ -83,6 +84,9 @@ class Bot:
 
     def add_tutor_categories(self, categories):
         self.tutor_categories = categories
+
+    def add_announce_time_reporting(self, time_reporting):
+        self.announce_time_reporting = time_reporting
 
     def add_course_prefixes(self, prefixes):
         self.course_prefixes = prefixes
@@ -267,10 +271,7 @@ class Bot:
                         types="private_channel"
                     )
                     for channel in conversation_list["channels"]:
-                        if (
-                            channel["name"].startswith("cs")
-                            and not "-" in channel["name"]
-                        ):
+                        if self.bot.is_course_channel(channel["name"]):
                             courses.append(channel["name"].upper())
 
                 logging.debug(courses)
@@ -313,10 +314,7 @@ class Bot:
                         types="private_channel"
                     )
                     for channel in conversation_list["channels"]:
-                        if (
-                            channel["name"].startswith("cs")
-                            and not "-" in channel["name"]
-                        ):
+                        if self.bot.is_course_channel(channel["name"]):
                             courses.append(channel["name"].upper())
 
                 logging.debug(courses)
@@ -423,6 +421,10 @@ class Bot:
             (self.employee_list["user_id"] == command["user_id"])
             & (self.employee_list["Role"] == Role.ADMIN)
         ].empty
+
+    def is_course_channel(self, name):
+        regex_string = "((?:" + "|".join(self.course_prefixes) + ")\d{4})"
+        return re.match(regex_string, name, re.IGNORECASE)
 
     def save_lists(self):
         """Save all lists for fast reload"""
