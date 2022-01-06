@@ -40,7 +40,8 @@ class UpdateCourse(Command):
             logging.info("Starting course channel update on all channels...")
             respond("Starting course channel update on all channels...")
             conversation_list = self.bot.app.client.conversations_list(
-                types="private_channel"
+                types="private_channel",
+                exclude_archived=True,
             )
             for channel in conversation_list["channels"]:
                 if self.bot.is_course_channel(channel["name"]):

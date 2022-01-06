@@ -69,6 +69,7 @@ class Bot:
         self.get_students(
             os.path.exists("./dataframes/employees.pkl")
             and os.path.exists("./dataframes/members.pkl")
+            and False
         )
 
         SocketModeHandler(
@@ -279,7 +280,8 @@ class Bot:
                     courses = []
 
                     conversation_list = self.app.client.conversations_list(
-                        types="private_channel"
+                        types="private_channel",
+                        exclude_archived=True,
                     )
                     for channel in conversation_list["channels"]:
                         if self.is_course_channel(channel["name"]):
@@ -316,17 +318,16 @@ class Bot:
                 first_name = row[1]
                 last_name = row[2]
 
-                courses = ["all"]
+                courses = []
 
-                if "all" in courses:
-                    courses = []
+                conversation_list = self.app.client.conversations_list(
+                    types="private_channel",
+                    exclude_archived=True,
+                )
 
-                    conversation_list = self.app.client.conversations_list(
-                        types="private_channel"
-                    )
-                    for channel in conversation_list["channels"]:
-                        if self.is_course_channel(channel["name"]):
-                            courses.append(channel["name"].upper())
+                for channel in conversation_list["channels"]:
+
+                    courses.append(channel["name"].upper())
 
                 logging.debug(courses)
 
@@ -400,7 +401,8 @@ class Bot:
         """Get channel id by name"""
         try:
             conversation_list = self.app.client.conversations_list(
-                types="private_channel"
+                types="private_channel",
+                exclude_archived=True,
             )
             for channel in conversation_list["channels"]:
                 if channel["name"] == name:

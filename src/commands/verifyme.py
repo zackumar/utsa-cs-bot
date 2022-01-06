@@ -71,19 +71,28 @@ class VerifyMe(Command):
                 )
                 return
 
-        is_tutor = not self.bot.member_list.loc[
+        # If tutor, add to channel
+        tutor_rows = self.bot.member_list.loc[
             (self.bot.member_list["Username"] == utsa_id)
             & (self.bot.member_list["Role"] == Role.TUTOR)
-        ].empty
+        ]
 
-        if is_tutor:
+        if not tutor_rows.empty:
             try:
-                self.bot.app.client.conversations_invite(
-                    channel=self.bot.get_conversation_by_name(
-                        str("cs-tutor-time-reporting").lower()
-                    ),
-                    users=command["user_id"],
-                )
+                category = []
+
+                for index, row in tutor_rows.iterrows():
+                    if row["tutor_category"] in category:
+                        continue
+
+                    category.append(row["tutor_category"])
+
+                    self.bot.app.client.conversations_invite(
+                        channel=self.bot.get_conversation_by_name(
+                            str("{0}-tutors".format(row["tutor_category"])).lower()
+                        ),
+                        users=command["user_id"],
+                    )
             except SlackApiError as e:
                 if e.response["error"] == "already_in_channel":
                     pass
@@ -128,6 +137,19 @@ class VerifyMe(Command):
                                 )
                             )
                     in_class = True
+
+        # If instructor, add to channel
+        if self.bot.is_instructor(command):
+            try:
+                self.bot.app.client.conversations_invite(
+                    channel=self.bot.get_conversation_by_name(
+                        str("instructors").lower()
+                    ),
+                    users=command["user_id"],
+                )
+            except SlackApiError as e:
+                if e.response["error"] == "already_in_channel":
+                    pass
 
         if in_class:
             roles = []

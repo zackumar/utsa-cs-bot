@@ -27,7 +27,8 @@ class RemoveCourses(Command):
         self.bot.remove_roles()
 
         conversation_list = self.bot.app.client.conversations_list(
-            types="private_channel"
+            types="private_channel",
+            exclude_archived=True,
         )
         for channel in conversation_list["channels"]:
             if self.bot.is_course_channel(channel["name"]):
