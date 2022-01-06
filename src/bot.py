@@ -125,8 +125,12 @@ class Bot:
             logging.info("Loading students from course lists")
             file_name_list = os.listdir("./courses")
 
+            regex_string = (
+                "((?:" + "|".join(self.course_prefixes) + ")\d{4})-(\d{3})\.csv"
+            )
+
             for file_name in file_name_list:
-                match_info = re.search(r"(CS\d{4})-(\d{3})\.csv", file_name)
+                match_info = re.search(regex_string, file_name)
                 if match_info != None:
                     self.create_course(match_info.group(1))
 
