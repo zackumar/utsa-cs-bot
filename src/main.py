@@ -23,8 +23,8 @@ def main():
     bot = Bot()
 
     tutor_categories = [
-        "cs-tutors",
-        "matlab-tutors",
+        "cs",
+        "matlab",
     ]
 
     course_prefixes = [

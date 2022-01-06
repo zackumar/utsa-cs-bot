@@ -54,11 +54,6 @@ class Bot:
             ]
         )
 
-        self.get_students(
-            os.path.exists("./dataframes/employees.pkl")
-            and os.path.exists("./dataframes/members.pkl")
-        )
-
         self.remove_all = False
         self.large_invite = False
 
@@ -71,6 +66,11 @@ class Bot:
         self.bot_id = self.app.client.auth_test()["user_id"]
 
     def start(self):
+        self.get_students(
+            os.path.exists("./dataframes/employees.pkl")
+            and os.path.exists("./dataframes/members.pkl")
+        )
+
         SocketModeHandler(
             self.app,
             tokens.SLACK_APP_TOKEN,
@@ -140,7 +140,7 @@ class Bot:
 
                 self.read_file("./courses/" + file_name)
 
-            self.load_tutors()
+            self.load_tutors(file_name_list)
             self.load_instructors()
             self.load_admins()
 
@@ -149,9 +149,9 @@ class Bot:
 
             self.save_lists()
 
-        logging.debug(self.member_list)
-        logging.debug("EMPLO")
-        logging.debug(self.employee_list)
+        logging.info(self.member_list)
+        logging.info("EMPLO")
+        logging.info(self.employee_list)
 
     def update_students(self):
         """
@@ -196,8 +196,10 @@ class Bot:
         """
         Read course file and parse students
         """
+        regex_string = "((?:" + "|".join(self.course_prefixes) + ")\d{4})-(\d{3})\.csv"
+
         course_dataframe = pd.read_csv(file_name)
-        match_info = re.search(r"(CS\d{4})-(\d{3})\.csv", file_name)
+        match_info = re.search(regex_string, file_name)
         if match_info is not None:
             course_column_entry = [match_info.group(1)]
             section_number_str = match_info.group(2)
@@ -218,40 +220,49 @@ class Bot:
             self.member_list = self.member_list.append(course_dataframe)
             logging.info(f"Loaded file: {file_name}")
 
-    def load_tutors(self):
-        with open("./courses/tutors.csv", encoding="utf-8") as f:
+    def load_tutors(self, file_name_list):
 
-            csvreader = csv.reader(f)
+        regex_string = "(" + "|".join(self.tutor_categories) + ")-tutors.csv"
 
-            for row in csvreader:
-                logging.debug(row)
-                username = row[0]
-                first_name = row[1]
-                last_name = row[2]
+        for file_name in file_name_list:
+            match_info = re.search(regex_string, file_name)
+            if match_info != None:
 
-                courses = row[3:]
+                with open("./courses/{0}".format(file_name), encoding="utf-8") as f:
 
-                logging.debug(courses)
+                    csvreader = csv.reader(f)
 
-                for course in courses:
-                    tutor_row = {
-                        "Username": username,
-                        "First Name": first_name,
-                        "Last Name": last_name,
-                        "Course": course,
-                        "Section": 0,
-                        "Role": Role.TUTOR,
-                    }
+                    for row in csvreader:
+                        logging.debug(row)
+                        username = row[0]
+                        first_name = row[1]
+                        last_name = row[2]
 
-                    self.member_list = self.member_list.append(
-                        tutor_row, ignore_index=True
-                    )
-                    tutor_row["Status"] = Status.OUT
-                    self.employee_list = self.employee_list.append(
-                        tutor_row, ignore_index=True
-                    )
+                        courses = row[3:]
+
+                        logging.debug(courses)
+
+                        for course in courses:
+                            tutor_row = {
+                                "Username": username,
+                                "First Name": first_name,
+                                "Last Name": last_name,
+                                "Course": course,
+                                "Section": 0,
+                                "Role": Role.TUTOR,
+                                "tutor_category": match_info.group(1),
+                            }
+
+                            self.member_list = self.member_list.append(
+                                tutor_row, ignore_index=True
+                            )
+                            tutor_row["Status"] = Status.OUT
+                            self.employee_list = self.employee_list.append(
+                                tutor_row, ignore_index=True
+                            )
 
     def load_instructors(self):
+
         with open("./courses/instructors.csv", encoding="utf-8") as f:
 
             csvreader = csv.reader(f)
@@ -271,7 +282,7 @@ class Bot:
                         types="private_channel"
                     )
                     for channel in conversation_list["channels"]:
-                        if self.bot.is_course_channel(channel["name"]):
+                        if self.is_course_channel(channel["name"]):
                             courses.append(channel["name"].upper())
 
                 logging.debug(courses)
@@ -314,7 +325,7 @@ class Bot:
                         types="private_channel"
                     )
                     for channel in conversation_list["channels"]:
-                        if self.bot.is_course_channel(channel["name"]):
+                        if self.is_course_channel(channel["name"]):
                             courses.append(channel["name"].upper())
 
                 logging.debug(courses)
