@@ -21,6 +21,8 @@ class ResetUser(Command):
             respond("You need to be an admin to use this command.")
             return
 
+        respond("Resetting user...")
+
         utsa_id = command["text"].lower().strip()
 
         user_id = self.bot.member_list.loc[
@@ -28,6 +30,7 @@ class ResetUser(Command):
         ].iloc[0]["user_id"]
 
         if pd.isnull(user_id):
+            respond("Could not find user id")
             return
 
         self.bot.member_list.loc[
@@ -42,14 +45,11 @@ class ResetUser(Command):
         )
         for channel in conversation_list["channels"]:
             if self.bot.is_course_channel(channel["name"]):
-
                 try:
                     self.bot.app.client.conversations_kick(
                         channel=channel["id"], user=user_id
                     )
-                    logger.debug(
-                        "Removed {0} from {1}".format(user_id, channel["name"])
-                    )
+                    logger.info("Removed {0} from {1}".format(user_id, channel["name"]))
                 except SlackApiError as e:
                     if e.response["error"] == "not_in_channel":
                         continue

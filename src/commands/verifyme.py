@@ -21,6 +21,7 @@ class VerifyMe(Command):
         """
 
         ack()
+        respond("Starting verification...")
 
         split = command["text"].lower().split(",")
 
@@ -103,8 +104,14 @@ class VerifyMe(Command):
             & (self.bot.member_list["Last Name"].str.lower() == last_name)
         ]
 
+        proper_name = student_rows.iloc[0]["First Name"]
+
         self.bot.employee_list.loc[
             (self.bot.employee_list["Username"] == utsa_id), "user_id"
+        ] = command["user_id"]
+
+        self.bot.member_list.loc[
+            (self.bot.member_list["Username"] == utsa_id), "user_id"
         ] = command["user_id"]
 
         courses = []
