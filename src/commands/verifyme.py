@@ -21,6 +21,7 @@ class VerifyMe(Command):
         """
 
         ack()
+        respond("Starting verification...")
 
         split = command["text"].lower().split(",")
 
@@ -71,63 +72,99 @@ class VerifyMe(Command):
                 )
                 return
 
-        is_tutor = not self.bot.member_list.loc[
-            (self.bot.member_list["Username"] == utsa_id)
-            & (self.bot.member_list["Role"] == Role.TUTOR)
-        ].empty
+        # If tutor, add to channel
+        tutor_rows = self.bot.employee_list.loc[
+            (self.bot.employee_list["Username"] == utsa_id)
+            & (self.bot.employee_list["Role"] == Role.TUTOR)
+        ]
 
-        if is_tutor:
+        if not tutor_rows.empty:
+            try:
+                category = []
+
+                for index, row in tutor_rows.iterrows():
+                    if row["tutor_category"] in category:
+                        continue
+
+                    category.append(row["tutor_category"])
+
+                    self.bot.app.client.conversations_invite(
+                        channel=self.bot.get_conversation_by_name(
+                            str("{0}-tutors".format(row["tutor_category"])).lower()
+                        ),
+                        users=command["user_id"],
+                    )
+            except SlackApiError as e:
+                if e.response["error"] == "already_in_channel":
+                    pass
+
+        student_rows = self.bot.member_list.loc[
+            (self.bot.member_list["Username"] == utsa_id)
+            & (self.bot.member_list["First Name"].str.lower() == first_name)
+            & (self.bot.member_list["Last Name"].str.lower() == last_name)
+        ]
+
+        proper_name = student_rows.iloc[0]["First Name"]
+
+        self.bot.employee_list.loc[
+            (self.bot.employee_list["Username"] == utsa_id), "user_id"
+        ] = command["user_id"]
+
+        self.bot.member_list.loc[
+            (self.bot.member_list["Username"] == utsa_id), "user_id"
+        ] = command["user_id"]
+
+        courses = []
+
+        for index, row in student_rows.iterrows():
+
+            try:
+                row["user_id"] = command["user_id"]
+
+                if row["Course"] in courses:
+                    continue
+
+                courses.append(row["Course"])
+
+                self.bot.app.client.conversations_invite(
+                    channel=self.bot.get_conversation_by_name(
+                        str(row["Course"]).lower()
+                    ),
+                    users=command["user_id"],
+                )
+                logging.info(
+                    "Added {0} {1} to course {2}".format(
+                        row["First Name"], row["Last Name"], row["Course"]
+                    )
+                )
+
+            except SlackApiError as e:
+                if e.response["error"] == "already_in_channel":
+                    logging.info(
+                        "Adding member to course: {0} {1} already in course {2}".format(
+                            row["First Name"], row["Last Name"], row["Course"]
+                        )
+                    )
+                else:
+                    logging.error(
+                        "Error adding member to course {0}: {1}".format(
+                            row["Course"], e
+                        )
+                    )
+            in_class = True
+
+        # If instructor, add to channel
+        if self.bot.is_instructor(command):
             try:
                 self.bot.app.client.conversations_invite(
                     channel=self.bot.get_conversation_by_name(
-                        str("cs-tutor-time-reporting").lower()
+                        str("instructors").lower()
                     ),
                     users=command["user_id"],
                 )
             except SlackApiError as e:
                 if e.response["error"] == "already_in_channel":
                     pass
-
-        for index, row in self.bot.member_list.iterrows():
-            if str(row["Username"]).lower() == utsa_id:
-                proper_name = row["First Name"]
-                if (
-                    str(row["First Name"]).lower() == first_name
-                    and str(row["Last Name"]).lower() == last_name
-                ):
-                    try:
-                        for index, row1 in self.bot.employee_list.iterrows():
-                            if row1["Username"] == utsa_id:
-                                row1["user_id"] = command["user_id"]
-
-                        row["user_id"] = command["user_id"]
-
-                        self.bot.app.client.conversations_invite(
-                            channel=self.bot.get_conversation_by_name(
-                                str(row["Course"]).lower()
-                            ),
-                            users=command["user_id"],
-                        )
-                        logging.info(
-                            "Added {0} {1} to course {2}".format(
-                                row["First Name"], row["Last Name"], row["Course"]
-                            )
-                        )
-
-                    except SlackApiError as e:
-                        if e.response["error"] == "already_in_channel":
-                            logging.info(
-                                "Adding member to course: {0} {1} already in course {2}".format(
-                                    row["First Name"], row["Last Name"], row["Course"]
-                                )
-                            )
-                        else:
-                            logging.error(
-                                "Error adding member to course {0}: {1}".format(
-                                    row["Course"], e
-                                )
-                            )
-                    in_class = True
 
         if in_class:
             roles = []

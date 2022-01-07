@@ -27,7 +27,7 @@ class Tutors(Command):
 
             files = self.bot.app.client.files_list(
                 channel=self.bot.get_conversation_by_name("schedules"),
-                # types="images",
+                types="images",
             )["files"]
 
             for file in files:

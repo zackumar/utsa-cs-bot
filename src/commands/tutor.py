@@ -35,6 +35,21 @@ class Tutor(Command):
         status = split.group(1)
         message = split.group(2)
 
+        tutor = self.bot.employee_list.loc[
+            (self.bot.employee_list["user_id"] == command["user_id"])
+            & (self.bot.employee_list["Role"] == Role.TUTOR)
+        ]
+
+        categories = []
+
+        for index, row in tutor.iterrows():
+            if row["tutor_category"] not in self.bot.announce_time_reporting:
+                continue
+            if row["tutor_category"] in categories:
+                continue
+
+            categories.append(row["tutor_category"])
+
         if status == "in":
 
             if (
@@ -53,21 +68,22 @@ class Tutor(Command):
             ] = Status.IN
 
             if message == None:
-                self.bot.app.client.chat_postMessage(
-                    channel=self.bot.get_conversation_by_name(
-                        "cs-tutor-time-reporting"
-                    ),
-                    text="<<@{0}>>: {1}".format(str(command["user_id"]), "in"),
-                )
+                for cat in categories:
+                    self.bot.app.client.chat_postMessage(
+                        channel=self.bot.get_conversation_by_name(cat + "-tutors"),
+                        text="<<@{0}>>: {1}".format(str(command["user_id"]), "in"),
+                    )
                 respond("You are now clocked in.")
                 return
 
-            tutor = self.bot.employee_list.loc[
-                (self.bot.employee_list["user_id"] == command["user_id"])
-                & (self.bot.employee_list["Role"] == Role.TUTOR)
-            ]
+            courses = []
 
             for index, row in tutor.iterrows():
+
+                if row["Course"] in courses:
+                    continue
+
+                courses.append(row["Course"])
 
                 broadcast = "<<@{0}>>: {1}".format(str(row["user_id"]), message)
 
@@ -78,10 +94,12 @@ class Tutor(Command):
                     text=broadcast,
                 )
 
-            self.bot.app.client.chat_postMessage(
-                channel=self.bot.get_conversation_by_name("cs-tutor-time-reporting"),
-                text="<<@{0}>>: {1}".format(str(command["user_id"]), "in"),
-            )
+            for cat in categories:
+
+                self.bot.app.client.chat_postMessage(
+                    channel=self.bot.get_conversation_by_name(cat + "-tutors"),
+                    text="<<@{0}>>: {1}".format(str(command["user_id"]), "in"),
+                )
 
             respond(
                 'You are now clocked in. Sent message: "'
@@ -103,10 +121,11 @@ class Tutor(Command):
                 self.bot.employee_list["user_id"] == command["user_id"], "Status"
             ] = Status.OUT
 
-            self.bot.app.client.chat_postMessage(
-                channel=self.bot.get_conversation_by_name("cs-tutor-time-reporting"),
-                text="<<@{0}>>: {1}".format(str(command["user_id"]), "out"),
-            )
+            for cat in categories:
+                self.bot.app.client.chat_postMessage(
+                    channel=self.bot.get_conversation_by_name(cat + "-tutors"),
+                    text="<<@{0}>>: {1}".format(str(command["user_id"]), "out"),
+                )
 
             respond("You are now clocked out.")
 

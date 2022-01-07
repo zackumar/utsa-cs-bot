@@ -15,3 +15,4 @@ dataframes/
 __pycache__
 tokens.py
 courses/CS1714-001.csv
+courses/DS1111-001.csv
