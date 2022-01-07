@@ -72,7 +72,7 @@ class VerifyMe(Command):
                 return
 
         # If tutor, add to channel
-        tutor_rows = self.bot.member_list.loc[
+        tutor_rows = self.bot.employee_list.loc[
             (self.bot.member_list["Username"] == utsa_id)
             & (self.bot.member_list["Role"] == Role.TUTOR)
         ]
@@ -97,54 +97,54 @@ class VerifyMe(Command):
                 if e.response["error"] == "already_in_channel":
                     pass
 
+        student_rows = self.bot.member_list.loc[
+            (self.bot.member_list["Username"] == utsa_id)
+            & (self.bot.member_list["First Name"].str.lower() == first_name)
+            & (self.bot.member_list["Last Name"].str.lower() == last_name)
+        ]
+
+        self.bot.employee_list.loc[
+            (self.bot.employee_list["Username"] == utsa_id), "user_id"
+        ] = command["user_id"]
+
         courses = []
 
-        for index, row in self.bot.member_list.iterrows():
+        for index, row in student_rows.iterrows():
 
-            if str(row["Username"]).lower() == utsa_id:
-                proper_name = row["First Name"]
-                if (
-                    str(row["First Name"]).lower() == first_name
-                    and str(row["Last Name"]).lower() == last_name
-                ):
-                    try:
-                        for index, row1 in self.bot.employee_list.iterrows():
-                            if row1["Username"] == utsa_id:
-                                row1["user_id"] = command["user_id"]
+            try:
+                row["user_id"] = command["user_id"]
 
-                        row["user_id"] = command["user_id"]
+                if row["Course"] in courses:
+                    continue
 
-                        if row["Course"] in courses:
-                            continue
+                courses.append(row["Course"])
 
-                        courses.append(row["Course"])
+                self.bot.app.client.conversations_invite(
+                    channel=self.bot.get_conversation_by_name(
+                        str(row["Course"]).lower()
+                    ),
+                    users=command["user_id"],
+                )
+                logging.info(
+                    "Added {0} {1} to course {2}".format(
+                        row["First Name"], row["Last Name"], row["Course"]
+                    )
+                )
 
-                        self.bot.app.client.conversations_invite(
-                            channel=self.bot.get_conversation_by_name(
-                                str(row["Course"]).lower()
-                            ),
-                            users=command["user_id"],
+            except SlackApiError as e:
+                if e.response["error"] == "already_in_channel":
+                    logging.info(
+                        "Adding member to course: {0} {1} already in course {2}".format(
+                            row["First Name"], row["Last Name"], row["Course"]
                         )
-                        logging.info(
-                            "Added {0} {1} to course {2}".format(
-                                row["First Name"], row["Last Name"], row["Course"]
-                            )
+                    )
+                else:
+                    logging.error(
+                        "Error adding member to course {0}: {1}".format(
+                            row["Course"], e
                         )
-
-                    except SlackApiError as e:
-                        if e.response["error"] == "already_in_channel":
-                            logging.info(
-                                "Adding member to course: {0} {1} already in course {2}".format(
-                                    row["First Name"], row["Last Name"], row["Course"]
-                                )
-                            )
-                        else:
-                            logging.error(
-                                "Error adding member to course {0}: {1}".format(
-                                    row["Course"], e
-                                )
-                            )
-                    in_class = True
+                    )
+            in_class = True
 
         # If instructor, add to channel
         if self.bot.is_instructor(command):
