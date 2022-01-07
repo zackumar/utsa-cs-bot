@@ -95,7 +95,6 @@ class Tutor(Command):
                 )
 
             for cat in categories:
-                print(cat)
 
                 self.bot.app.client.chat_postMessage(
                     channel=self.bot.get_conversation_by_name(cat + "-tutors"),

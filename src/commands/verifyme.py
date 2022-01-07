@@ -97,7 +97,10 @@ class VerifyMe(Command):
                 if e.response["error"] == "already_in_channel":
                     pass
 
+        courses = []
+
         for index, row in self.bot.member_list.iterrows():
+
             if str(row["Username"]).lower() == utsa_id:
                 proper_name = row["First Name"]
                 if (
@@ -110,6 +113,11 @@ class VerifyMe(Command):
                                 row1["user_id"] = command["user_id"]
 
                         row["user_id"] = command["user_id"]
+
+                        if row["Course"] in courses:
+                            continue
+
+                        courses.append(row["Course"])
 
                         self.bot.app.client.conversations_invite(
                             channel=self.bot.get_conversation_by_name(
