@@ -74,8 +74,8 @@ class VerifyMe(Command):
 
         # If tutor, add to channel
         tutor_rows = self.bot.employee_list.loc[
-            (self.bot.member_list["Username"] == utsa_id)
-            & (self.bot.member_list["Role"] == Role.TUTOR)
+            (self.bot.employee_list["Username"] == utsa_id)
+            & (self.bot.employee_list["Role"] == Role.TUTOR)
         ]
 
         if not tutor_rows.empty:
