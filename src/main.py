@@ -22,12 +22,18 @@ def main():
 
     bot = Bot()
 
+    # Prefix of the tutor files. E.x: cs-tutors.csv
+
     tutor_categories = [
         "cs",
         "matlab",
     ]
 
+    # Which categories you want to announce time in/out for
+
     announce_tutor_time = ["cs"]
+
+    # Course prefixes to read
 
     course_prefixes = [
         "CS",
