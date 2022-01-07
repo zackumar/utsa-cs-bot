@@ -18,7 +18,7 @@ class UpdateCourse(Command):
 
         ack()
 
-        if not self.bot.is_admin(command) and not self.bot.is_instuctor(command):
+        if not self.bot.is_admin(command) and not self.bot.is_instructor(command):
             respond("You need to be an admin/instructor to use this command.")
             return
 
