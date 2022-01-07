@@ -27,12 +27,15 @@ def main():
         "matlab",
     ]
 
+    announce_tutor_time = ["cs"]
+
     course_prefixes = [
         "CS",
         "DS",
     ]
 
     bot.add_tutor_categories(tutor_categories)
+    bot.add_announce_time_reporting(announce_tutor_time)
     bot.add_course_prefixes(course_prefixes)
 
     # ADD NEW COMMANDS HERE WITH 'bot' AS ITS PARAMETER

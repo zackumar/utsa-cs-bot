@@ -59,8 +59,8 @@ class Bot:
 
         self.commands = []
         self.events = []
-        self.tutor_categories = ["cs-tutors"]
-        self.announce_time_reporting = ["cs-tutors"]
+        self.tutor_categories = ["cs"]
+        self.announce_time_reporting = ["cs"]
         self.course_prefixes = ["CS"]
 
         self.bot_id = self.app.client.auth_test()["user_id"]
