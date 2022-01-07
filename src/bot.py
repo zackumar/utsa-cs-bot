@@ -69,7 +69,6 @@ class Bot:
         self.get_students(
             os.path.exists("./dataframes/employees.pkl")
             and os.path.exists("./dataframes/members.pkl")
-            and False
         )
 
         SocketModeHandler(
@@ -150,9 +149,8 @@ class Bot:
 
             self.save_lists()
 
-        logging.info(self.member_list)
-        logging.info("EMPLO")
-        logging.info(self.employee_list)
+        logging.debug(self.member_list)
+        logging.debug(self.employee_list)
 
     def update_students(self):
         """
