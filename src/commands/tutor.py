@@ -57,7 +57,7 @@ class Tutor(Command):
                     self.bot.employee_list["user_id"] == command["user_id"]
                 ].iloc[0]["Status"]
                 == Status.IN
-            ):
+            ) and (message == None):
                 respond("You are already clocked in.")
                 return
 
@@ -94,12 +94,13 @@ class Tutor(Command):
                     text=broadcast,
                 )
 
-            for cat in categories:
+            if not (tutor.iloc[0]["Status"] == Status.IN):
+                for cat in categories:
 
-                self.bot.app.client.chat_postMessage(
-                    channel=self.bot.get_conversation_by_name(cat + "-tutors"),
-                    text="<<@{0}>>: {1}".format(str(command["user_id"]), "in"),
-                )
+                    self.bot.app.client.chat_postMessage(
+                        channel=self.bot.get_conversation_by_name(cat + "-tutors"),
+                        text="<<@{0}>>: {1}".format(str(command["user_id"]), "in"),
+                    )
 
             respond(
                 'You are now clocked in. Sent message: "'
@@ -131,3 +132,5 @@ class Tutor(Command):
 
         else:
             respond("Please use this format: /tutor [in|out]")
+
+        self.bot.save_lists()
