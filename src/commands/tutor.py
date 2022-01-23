@@ -94,13 +94,12 @@ class Tutor(Command):
                     text=broadcast,
                 )
 
-            if not (tutor.iloc[0]["Status"] == Status.IN):
-                for cat in categories:
+            for cat in categories:
 
-                    self.bot.app.client.chat_postMessage(
-                        channel=self.bot.get_conversation_by_name(cat + "-tutors"),
-                        text="<<@{0}>>: {1}".format(str(command["user_id"]), "in"),
-                    )
+                self.bot.app.client.chat_postMessage(
+                    channel=self.bot.get_conversation_by_name(cat + "-tutors"),
+                    text="<<@{0}>>: {1}".format(str(command["user_id"]), "in"),
+                )
 
             respond(
                 'You are now clocked in. Sent message: "'
