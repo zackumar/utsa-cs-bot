@@ -67,45 +67,35 @@ class Tutor(Command):
                 "Status",
             ] = Status.IN
 
-            if message == None:
-                for cat in categories:
-                    self.bot.app.client.chat_postMessage(
-                        channel=self.bot.get_conversation_by_name(cat + "-tutors"),
-                        text="<<@{0}>>: {1}".format(str(command["user_id"]), "in"),
-                    )
-                respond("You are now clocked in.")
-                return
-
-            courses = []
-
-            for index, row in tutor.iterrows():
-
-                if row["Course"] in courses:
-                    continue
-
-                courses.append(row["Course"])
-
-                broadcast = "<<@{0}>>: {1}".format(str(row["user_id"]), message)
-
-                self.bot.app.client.chat_postMessage(
-                    channel=self.bot.get_conversation_by_name(
-                        str(row["Course"]).lower()
-                    ),
-                    text=broadcast,
-                )
-
             for cat in categories:
-
                 self.bot.app.client.chat_postMessage(
                     channel=self.bot.get_conversation_by_name(cat + "-tutors"),
                     text="<<@{0}>>: {1}".format(str(command["user_id"]), "in"),
                 )
 
-            respond(
-                'You are now clocked in. Sent message: "'
-                + split.group(2)
-                + '" to all your channels'
-            )
+            respond("You are now clocked in.")
+            self.bot.save_lists()
+
+            if message:
+                courses = []
+
+                for index, row in tutor.iterrows():
+
+                    if row["Course"] in courses:
+                        continue
+
+                    courses.append(row["Course"])
+
+                    broadcast = "<<@{0}>>: {1}".format(str(row["user_id"]), message)
+
+                    self.bot.app.client.chat_postMessage(
+                        channel=self.bot.get_conversation_by_name(
+                            str(row["Course"]).lower()
+                        ),
+                        text=broadcast,
+                    )
+
+                respond('Sent message: "' + split.group(2) + '" to all your channels.')
 
         elif status == "out":
             if (
@@ -128,8 +118,7 @@ class Tutor(Command):
                 )
 
             respond("You are now clocked out.")
+            self.bot.save_lists()
 
         else:
             respond("Please use this format: /tutor [in|out]")
-
-        self.bot.save_lists()

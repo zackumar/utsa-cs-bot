@@ -107,11 +107,11 @@ class VerifyMe(Command):
         proper_name = student_rows.iloc[0]["First Name"]
 
         self.bot.employee_list.loc[
-            (self.bot.employee_list["Username"] == utsa_id), "user_id"
+            (self.bot.employee_list["Username"] == utsa_id), ["user_id"]
         ] = command["user_id"]
 
         self.bot.member_list.loc[
-            (self.bot.member_list["Username"] == utsa_id), "user_id"
+            (self.bot.member_list["Username"] == utsa_id), ["user_id"]
         ] = command["user_id"]
 
         courses = []
