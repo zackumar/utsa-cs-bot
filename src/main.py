@@ -12,8 +12,10 @@ from commands.update import Update
 from commands.updatecourse import UpdateCourse
 from commands.updatelist import UpdateList
 from commands.verifyme import VerifyMe
+from commands.welcome import Welcome
 
 from events.member_joined_event import MemberJoinedEvent
+from events.member_joined_team_event import MemberJoinedTeamEvent
 from events.member_left_event import MemberLeftEvent
 from events.message_event import MessageEvent
 
@@ -58,6 +60,7 @@ def main():
         Update(bot),
         Help(bot),
         Ping(bot),
+        Welcome(bot),
     ]
 
     # ADD NEW EVENTS HERE WITH 'bot' AS ITS PARAMETER
@@ -65,6 +68,7 @@ def main():
         MessageEvent(bot),
         MemberLeftEvent(bot),
         MemberJoinedEvent(bot),
+        MemberJoinedTeamEvent(bot),
     ]
 
     bot.add_commands(commands=commands)

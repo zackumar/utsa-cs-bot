@@ -15,49 +15,98 @@ class Welcome(Command):
 
         print(command)
 
-        self.bot.app.client.chat_postEphemeral(
-            channel=self.bot.get_conversation_by_name("welcome"),
-            user=command["user_id"],
+        self.bot.app.client.chat_postMessage(
+            channel=command["user_id"],
+            # user=command["user_id"],
             text="Welcome to the CS Main Lab! Here's how to get started.",
             blocks=[
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "Welcome to the UTSA Virtual CS Main Lab! :wave:",
+                    },
+                },
+                {"type": "divider"},
                 {
                     "type": "header",
                     "text": {
                         "type": "plain_text",
-                        "text": "Welcome to the CS Main Lab Slack Server!",
+                        "text": "Let's get you verified",
+                        "emoji": True,
                     },
                 },
                 {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "In order to get started, you will need to verify yourself using the */verifyme* command in this channel.",
+                        "text": "There are a few things you need to do to get started. First you need to verify yourself to gain access to your channels.\n\nTo do that, use the `/verifyme` command. The format is shown below.\n\n- `/verifyme <abc123>,<first_name>,<last_name>`",
                     },
                 },
                 {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "`/verifyme <abc123>,<first_name>,<last_name>`",
+                        "text": "Please use the name show in ASAP. Also, make sure to not include the angle brackets (<>)",
                     },
                 },
                 {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "You should see `Starting verification` followed by a message adding you to your classes, or an error message. If you do not see a message after a few minutes, please post in the `#troubleshooting` channel.",
+                        "text": "For example, `/verifyme abc123,john,doe`",
                     },
                 },
                 {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "Additional helpful information can be found in the `#announcments` channel.",
+                        "text": "If you were successful, you should get a message saying you're good to go.\n\nOtherwise, the command may give you tips on what went wrong. If the command freezes or you are having trouble verifying, please message the `#troubleshooting` channel.",
                     },
                 },
                 {
                     "type": "section",
-                    "text": {"type": "mrkdwn", "text": "*Have a great semester!*"},
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "Once you have validated yourself, you can revalidate if you have joined new classes or accidentally left a channel.",
+                    },
                 },
+                {"type": "divider"},
+                {
+                    "type": "header",
+                    "text": {"type": "plain_text", "text": "Tutoring", "emoji": True},
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "For some courses, the CS department will provide free tutoring services. Tutors will announce when they are available. To check if a tutors are currently available for a specific course, you can use `/tutors` in the specific course channels. To see the schedule for a specific course, you can use `/tutors schedule`.",
+                    },
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": "*Matlab courses may not use the /tutors command",
+                        }
+                    ],
+                },
+                {"type": "divider"},
+                {
+			"type": "header",
+			"text": {
+				"type": "plain_text",
+				"text": "That's all folks",
+				"emoji": True
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "If you need this for future reference, you can use `/welcome`\n\n*Have a great semester! 🎉*"
+			}
+		}
             ],
         )
