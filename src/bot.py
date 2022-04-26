@@ -72,8 +72,6 @@ class Bot:
             and os.path.exists("./dataframes/members.pkl")
         )
 
-        # self.get_students()
-
         SocketModeHandler(
             self.app,
             tokens.SLACK_APP_TOKEN,
@@ -393,7 +391,6 @@ class Bot:
         """Get channel id by name"""
         try:
             conversation_list = self.app.client.conversations_list(
-                types="private_channel",
                 exclude_archived=True,
             )
             for channel in conversation_list["channels"]:
