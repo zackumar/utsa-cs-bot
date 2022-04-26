@@ -19,7 +19,7 @@ import tokens
 
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[logging.FileHandler("./slackbot.log"), logging.StreamHandler()],
 )
@@ -62,14 +62,17 @@ class Bot:
         self.tutor_categories = ["cs"]
         self.announce_time_reporting = ["cs"]
         self.course_prefixes = ["CS"]
+        self.courses = set()
 
         self.bot_id = self.app.client.auth_test()["user_id"]
 
     def start(self):
-        self.get_students(
-            os.path.exists("./dataframes/employees.pkl")
-            and os.path.exists("./dataframes/members.pkl")
-        )
+        # self.get_students(
+        #     os.path.exists("./dataframes/employees.pkl")
+        #     and os.path.exists("./dataframes/members.pkl")
+        # )
+
+        self.get_students()
 
         SocketModeHandler(
             self.app,
@@ -129,16 +132,9 @@ class Bot:
             logging.info("Loading students from course lists")
             file_name_list = os.listdir("./courses")
 
-            regex_string = (
-                "((?:" + "|".join(self.course_prefixes) + ")\d{4})-(\d{3})\.csv"
-            )
-
-            for file_name in file_name_list:
-                match_info = re.search(regex_string, file_name)
-                if match_info != None:
-                    self.create_course(match_info.group(1))
-
-                self.read_file("./courses/" + file_name)
+            self.read_file("./courses/courses.csv")
+            for course in self.courses:
+                self.create_course(course)
 
             self.load_tutors(file_name_list)
             self.load_instructors()
@@ -192,32 +188,30 @@ class Bot:
         self.save_lists()
 
     def read_file(self, file_name):
-        """
-        Read course file and parse students
-        """
-        regex_string = "((?:" + "|".join(self.course_prefixes) + ")\d{4})-(\d{3})\.csv"
+        courses_df = pd.read_csv(file_name)
 
-        course_dataframe = pd.read_csv(file_name)
-        match_info = re.search(regex_string, file_name)
-        if match_info is not None:
-            course_column_entry = [match_info.group(1)]
-            section_number_str = match_info.group(2)
-            section_number = int(section_number_str)
-            section_column_entry = [section_number]
-            number_of_entries = len(course_dataframe.index)
-            courses_series = pd.Series(
-                course_column_entry * number_of_entries, index=course_dataframe.index
-            )
-            section_series = pd.Series(
-                section_column_entry * number_of_entries, index=course_dataframe.index
-            )
-            course_dataframe["Course"] = courses_series
-            course_dataframe["Section"] = section_series
+        print(courses_df)
 
-            course_dataframe["Role"] = Role.STUDENT
+        courses_df.columns = [
+            "Username",
+            "Last Name",
+            "First Name",
+            "Subject",
+            "Course",
+            "Section",
+        ]
 
-            self.member_list = self.member_list.append(course_dataframe)
-            logging.info(f"Loaded file: {file_name}")
+        courses_df["Course"] = courses_df["Subject"] + courses_df["Course"].astype(str)
+        courses_df.drop("Subject", axis="columns", inplace=True)
+
+        self.courses = set(courses_df["Course"].unique())
+        print(self.courses)
+
+        courses_df["Role"] = Role.STUDENT
+
+        print(courses_df)
+        self.member_list = self.member_list.append(courses_df)
+        logging.info(f"Loaded file: {file_name}")
 
     def load_tutors(self, file_name_list):
 
