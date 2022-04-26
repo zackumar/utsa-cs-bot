@@ -72,7 +72,6 @@ class Bot:
             and os.path.exists("./dataframes/members.pkl")
         )
 
-
         SocketModeHandler(
             self.app,
             tokens.SLACK_APP_TOKEN,
