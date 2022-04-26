@@ -19,7 +19,7 @@ import tokens
 
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[logging.FileHandler("./slackbot.log"), logging.StreamHandler()],
 )
@@ -67,12 +67,12 @@ class Bot:
         self.bot_id = self.app.client.auth_test()["user_id"]
 
     def start(self):
-        # self.get_students(
-        #     os.path.exists("./dataframes/employees.pkl")
-        #     and os.path.exists("./dataframes/members.pkl")
-        # )
+        self.get_students(
+            os.path.exists("./dataframes/employees.pkl")
+            and os.path.exists("./dataframes/members.pkl")
+        )
 
-        self.get_students()
+        # self.get_students()
 
         SocketModeHandler(
             self.app,
