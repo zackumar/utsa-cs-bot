@@ -24,8 +24,7 @@ The bot to make the UTSA CS Main Lab Slack server a little bit easier to use.
 
 After you have installed the CS bot, you need to add some files for the bot to use.
 
-1. All course files need to go into the courses folder. 
-	- The file name needs to match `CS####-###.csv`.
+1. Add the single course file into courses folder. Make sure it is named `courses.csv`.
 
 2. All tutors need to be added to the `tutors.csv` file.
 	-	The format of the file goes
