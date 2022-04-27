@@ -188,8 +188,6 @@ class Bot:
     def read_file(self, file_name):
         courses_df = pd.read_csv(file_name)
 
-        print(courses_df)
-
         courses_df.columns = [
             "Username",
             "Last Name",
@@ -203,11 +201,9 @@ class Bot:
         courses_df.drop("Subject", axis="columns", inplace=True)
 
         self.courses = set(courses_df["Course"].unique())
-        print(self.courses)
 
         courses_df["Role"] = Role.STUDENT
 
-        print(courses_df)
         self.member_list = self.member_list.append(courses_df)
         logging.info(f"Loaded file: {file_name}")
 

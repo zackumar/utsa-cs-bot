@@ -13,7 +13,7 @@ class Welcome(Command):
     def on_call(self, ack, respond, command):
         ack()
 
-        print(command)
+        # print(command)
 
         self.bot.app.client.chat_postMessage(
             channel=command["user_id"],
@@ -88,25 +88,25 @@ class Welcome(Command):
                     "elements": [
                         {
                             "type": "mrkdwn",
-                            "text": "*Matlab courses may not use the /tutors command",
+                            "text": "*MATLAB courses may not use the /tutors command",
                         }
                     ],
                 },
                 {"type": "divider"},
                 {
-			"type": "header",
-			"text": {
-				"type": "plain_text",
-				"text": "That's all folks",
-				"emoji": True
-			}
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "If you need this for future reference, you can use `/welcome`\n\n*Have a great semester! 🎉*"
-			}
-		}
+                    "type": "header",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "That's all folks",
+                        "emoji": True,
+                    },
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "If you need this for future reference, you can use `/welcome`\n\n*Have a great semester! 🎉*",
+                    },
+                },
             ],
         )

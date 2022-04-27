@@ -83,7 +83,7 @@ class MemberJoinedTeamEvent(Event):
                     "elements": [
                         {
                             "type": "mrkdwn",
-                            "text": "*Matlab courses may not use the /tutors command",
+                            "text": "*MATLAB courses may not use the /tutors command",
                         }
                     ],
                 },
