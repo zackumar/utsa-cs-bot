@@ -16,3 +16,8 @@ __pycache__
 tokens.py
 courses/CS1714-001.csv
 courses/DS1111-001.csv
+
+courses/
+courses/admins.csv
+courses/instructors.csv
+courses/cs-tutors.csv
