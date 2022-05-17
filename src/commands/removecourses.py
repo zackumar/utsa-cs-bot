@@ -45,17 +45,24 @@ class RemoveCourses(Command):
 
                 logging.debug(channel["name"] + ": " + str(members))
 
+                admins = []
+                
                 for user in members:
                     if user == bot_id:
                         continue
-                    if (command["text"].strip() == "stay") and (
-                        self.bot.is_admin({"user_id": user})
-                    ):
+            
+                    if self.bot.is_admin({"user_id": user):
+                        admins.append(user)
                         continue
                     self.bot.app.client.conversations_kick(
                         channel=channel["id"], user=user
                     )
                     logging.info("\tRemoved {0} from {1}".format(user, channel["name"]))
-
+                                          
+                for user in admins:
+                    self.bot.app.client.conversations_kick(
+                        channel=channel["id"], user=user
+                    )
+                    logging.info("\tRemoved {0} from {1}".format(user, channel["name"]))
         respond("Deleted Courses")
         self.bot.remove_all = False
