@@ -389,7 +389,9 @@ class Bot:
             conversation_list = self.app.client.conversations_list(
                 exclude_archived=True,
             )
+            
             for channel in conversation_list["channels"]:
+                print(channel["id"], channel["name"])
                 if channel["name"] == name:
                     return channel["id"]
 
