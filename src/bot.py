@@ -388,6 +388,7 @@ class Bot:
         try:
             conversation_list = self.app.client.conversations_list(
                 exclude_archived=True,
+                types="public_channel,private_channel"
             )
             
             for channel in conversation_list["channels"]:
