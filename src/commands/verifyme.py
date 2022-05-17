@@ -126,6 +126,10 @@ class VerifyMe(Command):
 
                 courses.append(row["Course"])
 
+                print(row["Course"], self.bot.get_conversation_by_name(
+                        str(row["Course"]).lower()
+                ))
+                
                 self.bot.app.client.conversations_invite(
                     channel=self.bot.get_conversation_by_name(
                         str(row["Course"]).lower()
