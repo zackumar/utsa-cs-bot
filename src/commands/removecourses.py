@@ -32,6 +32,7 @@ class RemoveCourses(Command):
         )
         for channel in conversation_list["channels"]:
             if self.bot.is_course_channel(channel["name"]):
+                logger.info("Removing course: " + channel["name"])
                 call = self.bot.app.client.conversations_members(channel=channel["id"])
                 members = call["members"]
 
