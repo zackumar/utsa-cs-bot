@@ -55,7 +55,7 @@ class RemoveCourses(Command):
                     self.bot.app.client.conversations_kick(
                         channel=channel["id"], user=user
                     )
-                    logging.info("Removed {0} from {1}".format(user, channel["name"]))
+                    logging.info("\tRemoved {0} from {1}".format(user, channel["name"]))
 
         respond("Deleted Courses")
         self.bot.remove_all = False
