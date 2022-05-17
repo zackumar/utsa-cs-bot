@@ -51,7 +51,7 @@ class RemoveCourses(Command):
                     if user == bot_id:
                         continue
             
-                    if self.bot.is_admin({"user_id": user):
+                    if self.bot.is_admin({"user_id": user}):
                         admins.append(user)
                         continue
                     self.bot.app.client.conversations_kick(
