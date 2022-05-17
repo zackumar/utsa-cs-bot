@@ -18,8 +18,8 @@ class UpdateCourse(Command):
 
         ack()
 
-        if not self.bot.is_admin(command) and not self.bot.is_instructor(command):
-            respond("You need to be an admin/instructor to use this command.")
+        if not self.bot.is_admin(command):
+            respond("You need to be an admin to use this command.")
             return
 
         self.bot.large_invite = True
